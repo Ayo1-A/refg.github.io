@@ -1,0 +1,2842 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gospel Prophecy - Enterprise Admin Panel</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    :root { 
+      --primary: #8b5cf6; 
+      --primary-dark: #7c3aed; 
+      --primary-glow: rgba(139, 92, 246, 0.4);
+    }
+
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background-color: #050a14; 
+      color: #e2e8f0; 
+      overflow: hidden; 
+      /* Enterprise Deep Space Gradient */
+      background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #050a14 70%, #03060c 100%);
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(30, 41, 59, 0.8);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Custom Scrollbar */
+    .scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 4px; }
+    .scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; border: 1px solid rgba(15, 23, 42, 0.5); }
+    .scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Custom Toggle Switch */
+    .toggle {
+      appearance: none; width: 44px; height: 24px; background: #1e293b;
+      border-radius: 24px; position: relative; cursor: pointer; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid #334155;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+      background: white; border-radius: 50%; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .toggle:checked { background: var(--primary); border-color: var(--primary-dark); box-shadow: 0 0 15px var(--primary-glow); }
+    .toggle:checked::after { transform: translateX(18px); }
+
+    /* Navigation & Hardware Accelerated Animations */
+    .nav-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); will-change: transform, background-color; }
+    .nav-item.active { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border-right: 3px solid var(--primary); box-shadow: inset 4px 0 15px rgba(139, 92, 246, 0.05); }
+    .nav-item:hover { transform: translateX(4px) translateZ(0); }
+    
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .sidebar-transition { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
+
+    /* Advanced Action Buttons */
+    .btn { transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, box-shadow 0.2s; will-change: transform; }
+    .btn:active:not(:disabled) { transform: scale(0.95) translateZ(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; filter: grayscale(50%); }
+
+    /* Inputs Focus Rings */
+    input, select, textarea { transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25); }
+
+    /* Advanced Chat Bubbles */
+    .msg-bubble { max-width: 85%; padding: 14px 18px; border-radius: 18px; font-size: 13.5px; line-height: 1.6; position: relative; word-break: break-word; white-space: pre-wrap; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .msg-admin { align-self: flex-end; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-bottom-right-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+    .msg-user { align-self: flex-start; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(8px); color: #f8fafc; border-bottom-left-radius: 4px; border: 1px solid #334155; }
+    .msg-time { font-size: 10px; margin-top: 8px; opacity: 0.6; display: block; text-align: right; font-weight: 700; letter-spacing: 0.5px; }
+    .chat-user-item { transition: all 0.2s ease; border-left: 3px solid transparent; }
+    .chat-user-item.active { background: rgba(139, 92, 246, 0.12); border-left: 3px solid var(--primary); }
+    .chat-user-item.unread { font-weight: 700; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; }
+
+    /* Toast Notification System */
+    .toast-container { position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; perspective: 1000px; }
+    .toast { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.1); padding: 16px 20px; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 600; min-width: 320px; transform: translateX(calc(100% + 40px)) translateZ(0); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 5px solid #10b981; color: white; pointer-events: all; will-change: transform; }
+    .toast.show { transform: translateX(0) translateZ(0); }
+    .toast.error { border-left-color: #ef4444; }
+    .toast.warning { border-left-color: #f59e0b; }
+    .toast.info { border-left-color: #3b82f6; }
+  </style>
+</head>
+<body class="flex h-screen w-screen overflow-hidden text-slate-300 relative">
+
+  <!-- DATABASE RULES WARNING OVERLAY -->
+  <div id="db-rules-warning" class="fixed inset-0 bg-[#050a14]/98 z-[500] hidden flex-col items-center justify-center p-6 text-center backdrop-blur-xl transition-all duration-300">
+    <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 text-4xl shadow-[0_0_30px_rgba(239,68,68,0.2)] border border-red-500/20"><i class="fa-solid fa-shield-virus"></i></div>
+    <h2 class="text-3xl font-black text-white mb-3 tracking-tight">Database Access Denied</h2>
+    <p class="text-slate-400 mb-8 max-w-lg leading-relaxed text-sm">Your Firebase Realtime Database rules must be set to public or authenticated admin. Please update your security rules in the Firebase Console to permit operational handshakes.</p>
+    <button onclick="window.location.reload()" class="bg-white text-black px-8 py-3.5 rounded-xl font-bold btn hover:bg-slate-200 shadow-xl">Reload Application Pipeline</button>
+  </div>
+
+  <!-- AUTHENTICATION CONTAINER (LOGIN / REGISTER) -->
+  <div id="auth-container" class="fixed inset-0 bg-[#050a14]/95 z-[150] flex items-center justify-center p-4 overflow-y-auto scrollbar backdrop-blur-md">
+    <div class="w-full max-w-md glass rounded-3xl p-8 md:p-10 border border-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#0ea5e9] flex items-center justify-center text-white font-bold shadow-lg shadow-primary/30 mx-auto mb-4 border border-white/10"><i class="fa-solid fa-bolt text-3xl"></i></div>
+        <h2 class="text-2xl font-black text-white tracking-tight">GOSPEL PORTAL</h2>
+        <p class="text-xs text-slate-400 mt-1.5 font-medium uppercase tracking-widest">Enterprise Administrative Engine</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div id="tab-switcher-container" class="flex bg-slate-900 p-1.5 rounded-xl border border-slate-800 mb-8 shadow-inner transition-all duration-300">
+        <button id="tab-login" onclick="AuthEngine.switchTab('login')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition text-white bg-[#8b5cf6] shadow-md">Login Auth</button>
+        <button id="tab-register" onclick="AuthEngine.switchTab('register')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white hover:bg-slate-800/50">Apply / Register</button>
+      </div>
+
+      <!-- Login Form Frame -->
+      <form id="form-login" onsubmit="AuthEngine.handleLogin(event)" class="space-y-5">
+        <div>
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-1.5">Administrative Email</label>
+          <div class="relative">
+            <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+            <input type="email" id="login-email" required autocomplete="email" class="w-full bg-[#050a14] border border-slate-700 rounded-xl pl-11 pr-4 py-3.5 text-sm font-medium text-white focus:border-[#8b5cf6] outline-none shadow-inner transition-all" placeholder="name@domain.com">
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-1.5">Secure Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+            <input type="password" id="login-password" required autocomplete="current-password" class="w-full bg-[#050a14] border border-slate-700 rounded-xl pl-11 pr-4 py-3.5 text-sm font-medium text-white focus:border-[#8b5cf6] outline-none shadow-inner transition-all" placeholder="••••••••">
+          </div>
+        </div>
+        <button type="submit" id="btn-login-submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-sm text-white font-black tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] mt-4 btn">Authenticate Terminal</button>
+      </form>
+
+      <!-- Register Form Frame -->
+      <form id="form-register" onsubmit="AuthEngine.handleRegister(event)" class="space-y-5 hidden">
+        <div>
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-1.5">Full Legal Name</label>
+          <input type="text" id="reg-name" required autocomplete="name" autocapitalize="words" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-[#0ea5e9] outline-none shadow-inner transition-all" placeholder="Elder John Doe">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-1.5">Secure Email Identifier</label>
+          <input type="email" id="reg-email" required autocomplete="email" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-[#0ea5e9] outline-none shadow-inner transition-all" placeholder="name@domain.com">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-1.5">Create Secure Password</label>
+          <input type="password" id="reg-password" required minlength="6" autocomplete="new-password" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-[#0ea5e9] outline-none shadow-inner transition-all" placeholder="Minimum 6 characters">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-1.5">Desired System Role Position</label>
+          <select id="reg-role" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-bold text-white focus:border-[#0ea5e9] outline-none cursor-pointer transition-all appearance-none">
+            <option value="Moderator">Moderator (Content & Directory Ops)</option>
+            <option value="Admin">System Admin (Structural Access Control)</option>
+            <option value="Superadmin">Superadmin (Master Root Access)</option>
+          </select>
+        </div>
+        <button type="submit" id="btn-reg-submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-sm text-white font-black tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] mt-4 btn">Submit Application Protocol</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION SCREEN BLOCK FOR STATUS OVERLAYS (PENDING / REJECTED) -->
+  <div id="status-container" class="fixed inset-0 bg-[#050a14]/98 z-[140] hidden flex-col items-center justify-center p-6 text-center backdrop-blur-xl">
+    <div id="status-pending-card" class="max-w-md w-full bg-slate-900/80 border border-slate-800 rounded-3xl p-8 shadow-2xl hidden relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500"></div>
+      <div class="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-[0_0_30px_rgba(245,158,11,0.2)] border border-amber-500/20 animate-pulse"><i class="fa-solid fa-hourglass-half"></i></div>
+      <h2 class="text-2xl font-black text-white mb-3 tracking-tight">Application Pending Review</h2>
+      <p class="text-sm text-slate-400 mb-8 leading-relaxed">Your administrative request has been successfully mapped to the database core. Senior administrators are currently parsing your credentials for systemic verification.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="window.location.reload()" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-6 py-3 rounded-xl text-xs font-bold transition btn"><i class="fa-solid fa-rotate-right mr-1.5"></i> Check Update</button>
+        <button onclick="AuthEngine.logout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-6 py-3 rounded-xl text-xs font-bold transition btn"><i class="fa-solid fa-arrow-right-from-bracket mr-1.5"></i> Terminate Session</button>
+      </div>
+    </div>
+
+    <div id="status-rejected-card" class="max-w-md w-full bg-slate-900/80 border border-red-950/50 rounded-3xl p-8 shadow-2xl hidden relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-600"></div>
+      <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-[0_0_30px_rgba(239,68,68,0.2)] border border-red-500/20"><i class="fa-solid fa-ban"></i></div>
+      <h2 class="text-2xl font-black text-white mb-3 tracking-tight">Access Authority Rejected</h2>
+      <p class="text-sm text-slate-400 mb-8 leading-relaxed">System architecture denied entry. Your application for administrative clearance was flagged or rejected by higher authority operations.</p>
+      
+      <div class="bg-[#050a14] p-5 border border-slate-800 rounded-2xl text-left mb-8 shadow-inner">
+        <h4 class="text-xs font-extrabold text-white uppercase tracking-widest mb-3 text-center flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-turn-up text-[#8b5cf6]"></i> Reapply for System Role</h4>
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-slate-500 block mb-1.5 uppercase tracking-wider">Target Position</label>
+            <select id="reapply-role" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none cursor-pointer focus:border-[#8b5cf6] transition-colors">
+              <option value="Moderator">Moderator Access</option>
+              <option value="Admin">System Admin Access</option>
+            </select>
+          </div>
+          <button onclick="AuthEngine.handleReapply()" class="w-full py-3.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-black tracking-wide rounded-xl text-xs transition btn shadow-lg shadow-[#8b5cf6]/20">Transmit New Application</button>
+        </div>
+      </div>
+      
+      <div class="flex gap-3 justify-center">
+        <a href="mailto:admin@domain.com" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-5 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center btn"><i class="fa-solid fa-envelope mr-1.5"></i> Contact Ops</a>
+        <button onclick="AuthEngine.logout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-5 py-3 rounded-xl text-xs font-bold transition btn"><i class="fa-solid fa-arrow-right-from-bracket mr-1.5"></i> Return to Gateway</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPERADMIN LOCKDOWN OVERLAY CONTAINER -->
+  <div id="lockdown-container" class="fixed inset-0 bg-[#050a14]/98 z-[200] hidden flex-col items-center justify-center p-4 backdrop-blur-xl transition-all duration-300">
+      <div class="max-w-md w-full bg-slate-900/80 border border-amber-900/50 rounded-3xl p-8 shadow-[0_0_50px_rgba(245,158,11,0.15)] flex flex-col h-[85vh] max-h-[700px]">
+          <div class="text-center shrink-0 mb-6 border-b border-slate-800 pb-6">
+              <div class="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-5 text-4xl shadow-[0_0_30px_rgba(245,158,11,0.2)] border border-amber-500/20 animate-pulse"><i class="fa-solid fa-lock"></i></div>
+              <h2 class="text-3xl font-black text-white mb-2 tracking-tight">System Locked 🔐</h2>
+              <p class="text-sm text-slate-400 leading-relaxed">The administrative panel has been secured by the Superadmin. Only Master Access roles may enter at this time.</p>
+          </div>
+          
+          <div class="flex-1 min-h-0 flex flex-col bg-[#050a14] rounded-2xl border border-slate-800 overflow-hidden relative shadow-inner">
+              <div class="p-3 bg-slate-900/80 border-b border-slate-800 text-center shrink-0">
+                  <span class="text-[11px] font-bold text-slate-300 uppercase tracking-widest flex items-center justify-center gap-2"><i class="fa-solid fa-headset text-amber-500"></i> Superadmin Support Channel</span>
+              </div>
+              <div id="lockdown-messages" class="flex-1 overflow-y-auto scrollbar p-5 space-y-4 flex flex-col bg-[#050a14] scroll-smooth">
+                  <!-- Chat bubbles populate here -->
+              </div>
+              <div class="p-3 sm:p-4 bg-slate-900/80 border-t border-slate-800 gap-3 items-end shrink-0 flex">
+                  <input type="text" id="lockdown-input" class="flex-1 bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-amber-500 outline-none shadow-inner transition-colors" placeholder="Request access override..." onkeydown="if(event.keyCode===13){ Lockdown.sendMessage(); }">
+                  <button onclick="Lockdown.sendMessage()" class="btn w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white flex items-center justify-center transition shadow-lg shadow-amber-500/20 shrink-0 text-lg"><i class="fa-solid fa-paper-plane"></i></button>
+              </div>
+          </div>
+          
+          <div class="shrink-0 mt-6 pt-6 border-t border-slate-800 text-center">
+              <button onclick="AuthEngine.logout()" class="btn px-8 py-3.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-sm font-bold transition inline-flex items-center"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Terminate Active Session</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="app-container" class="flex w-full h-full relative">
+    
+    <!-- MOBILE SIDEBAR OVERLAY -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/70 z-40 hidden md:hidden backdrop-blur-sm transition-opacity" onclick="App.toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 glass border-r border-slate-800/80 flex flex-col z-50 sidebar-transition -translate-x-full md:relative md:translate-x-0 shadow-2xl">
+      <div class="p-6 flex items-center justify-between border-b border-slate-800/50 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8b5cf6] to-[#0ea5e9] flex items-center justify-center text-white font-bold shadow-lg shadow-[#8b5cf6]/20 border border-white/10"><i class="fa-solid fa-bolt text-lg"></i></div>
+          <div>
+            <h1 class="text-sm font-extrabold text-white tracking-wide">GOSPEL PANEL</h1>
+            <div class="text-[10px] text-red-400 flex items-center gap-1.5 font-medium mt-0.5" id="dash-conn-status">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_currentColor]"></span> Connecting...
+            </div>
+          </div>
+        </div>
+        <button class="md:hidden text-slate-400 hover:text-white btn" onclick="App.toggleSidebar()"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto scrollbar py-5">
+        <nav class="space-y-1.5 px-3">
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-1">Core Operations</div>
+          <button onclick="App.showView('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard
+          </button>
+          <button onclick="App.showView('users')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-users w-5 text-center"></i> Directory <span class="ml-auto bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm" id="sb-user-count">0</span>
+          </button>
+          <button onclick="App.showView('content')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-file-lines w-5 text-center"></i> Content Editor
+          </button>
+          <button onclick="App.showView('about')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-address-card w-5 text-center"></i> About Profile Editor
+          </button>
+          
+          <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-8">Engagement</div>
+          <button onclick="App.showView('support')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 relative">
+            <i class="fa-solid fa-headset w-5 text-center"></i> Support Inbox 
+            <span class="absolute right-3 w-2.5 h-2.5 rounded-full bg-red-500 hidden animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] border border-black/20" id="sb-support-unread"></span>
+          </button>
+          <button onclick="App.showView('analytics')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50">
+            <i class="fa-solid fa-chart-line w-5 text-center"></i> Analytics
+          </button>
+          
+          <!-- ADMIN EXCLUSIVE SECTION MENU -->
+          <div class="admin-only-ui text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-8 hidden">System Administration</div>
+          <button onclick="App.showView('approvals')" class="admin-only-ui nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 relative hidden">
+            <i class="fa-solid fa-user-check w-5 text-center"></i> Admin Approvals
+            <span class="ml-auto bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold hidden border border-amber-500/20" id="sb-approval-count">0</span>
+          </button>
+          <button onclick="App.showView('security')" class="admin-only-ui nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 hidden">
+            <i class="fa-solid fa-shield-halved w-5 text-center"></i> Security & Audit
+          </button>
+          <button onclick="App.showView('health')" class="admin-only-ui nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 hidden">
+            <i class="fa-solid fa-server w-5 text-center"></i> System Health
+          </button>
+          <button onclick="App.showView('backup')" class="admin-only-ui nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 hidden">
+            <i class="fa-solid fa-database w-5 text-center"></i> Backup & Restore
+          </button>
+          <button onclick="App.showView('config')" class="admin-only-ui nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 hidden">
+            <i class="fa-solid fa-gear w-5 text-center"></i> Configuration
+          </button>
+        </nav>
+      </div>
+
+      <div class="p-5 border-t border-slate-800/50 flex flex-col gap-3 shrink-0 bg-slate-900/20">
+        <button onclick="window.location.reload()" class="btn w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 shadow-sm">
+          <i class="fa-solid fa-rotate-right"></i> Refresh System
+        </button>
+        <button onclick="AuthEngine.logout()" class="btn w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 rounded-xl text-xs font-bold border border-red-900/40 shadow-sm">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout Terminal
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative z-10">
+      
+      <!-- TOP HEADER -->
+      <header class="h-16 glass border-b border-slate-800/80 flex items-center justify-between px-4 md:px-6 shrink-0 relative z-[60] shadow-sm">
+        <div class="flex items-center gap-4">
+          <button class="md:hidden text-slate-300 hover:text-white focus:outline-none bg-slate-800 w-10 h-10 rounded-xl flex items-center justify-center btn shadow-sm border border-slate-700" onclick="App.toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="relative hidden sm:block">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+            <input type="text" placeholder="Global Context Search..." class="w-80 bg-[#0a101f] border border-slate-700 rounded-xl py-2.5 pl-11 pr-4 text-xs font-medium focus:outline-none focus:border-[#8b5cf6] transition-colors text-slate-200 shadow-inner">
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 cursor-pointer bg-[#0a101f] px-3.5 py-1.5 rounded-xl border border-slate-700/80 hover:border-slate-600 transition-colors shadow-sm">
+            <img src="" id="top-bar-avatar" class="w-8 h-8 rounded-full shadow-md border border-slate-700">
+            <div class="leading-tight hidden sm:block pr-2">
+              <div class="text-xs font-extrabold text-white" id="top-bar-name">System User</div>
+              <div class="text-[10px] text-emerald-400 font-bold flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_currentColor]"></span> <span id="top-bar-role" class="uppercase tracking-wider">Verified</span></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- SUPERADMIN BROADCAST BANNER -->
+      <div id="announcement-bar" class="hidden bg-gradient-to-r from-amber-600 to-orange-700 text-white px-4 md:px-6 py-2.5 flex-col sm:flex-row justify-between items-center z-[55] shadow-[0_4px_15px_rgba(245,158,11,0.2)] shrink-0 border-b border-amber-500/50">
+          <div class="flex items-center gap-3 text-sm mb-2 sm:mb-0">
+              <div class="bg-amber-900/40 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border border-amber-500/30"><i class="fa-solid fa-bullhorn animate-bounce text-amber-300"></i></div>
+              <span id="announcement-text" class="font-extrabold tracking-wide leading-tight text-[13px] md:text-sm shadow-sm">System Announcement</span>
+          </div>
+          <div class="flex items-center gap-2.5 bg-black/30 px-3 py-1.5 rounded-lg border border-black/20 shadow-inner">
+              <span class="text-[10px] uppercase font-bold text-amber-200/80 tracking-widest">Expires In</span>
+              <span class="text-sm font-mono font-black tracking-wider text-white" id="announcement-timer">00:00:00</span>
+          </div>
+      </div>
+
+      <!-- VIEWS CONTAINER -->
+      <div class="flex-1 overflow-y-auto scrollbar p-4 md:p-6 lg:p-8" id="views-container">
+        
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view block space-y-6 md:space-y-8">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Command Center</h2>
+              <p class="text-sm text-slate-400 mt-1.5 font-medium">System telemetry and core matrix are running optimally.</p>
+            </div>
+            <div class="flex gap-2">
+              <span class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold flex items-center gap-2 shadow-sm" id="dash-realtime-badge">
+                <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Realtime Active
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick Stats Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+            <div class="glass rounded-3xl p-6 md:p-7 flex items-center justify-between border-b-4 border-b-[#8b5cf6] hover:bg-slate-800/40 transition-colors group">
+              <div><div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 group-hover:text-slate-300 transition-colors">Total Users</div><div class="text-3xl md:text-4xl font-black text-white" id="stat-users">...</div></div>
+              <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#8b5cf6]/10 flex items-center justify-center text-[#8b5cf6] text-2xl md:text-3xl shadow-inner border border-[#8b5cf6]/20"><i class="fa-solid fa-users"></i></div>
+            </div>
+            <div class="glass rounded-3xl p-6 md:p-7 flex items-center justify-between border-b-4 border-b-[#0ea5e9] hover:bg-slate-800/40 transition-colors group">
+              <div><div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 group-hover:text-slate-300 transition-colors">Active Articles</div><div class="text-3xl md:text-4xl font-black text-white" id="stat-articles">...</div></div>
+              <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#0ea5e9]/10 flex items-center justify-center text-[#0ea5e9] text-2xl md:text-3xl shadow-inner border border-[#0ea5e9]/20"><i class="fa-solid fa-newspaper"></i></div>
+            </div>
+            <div class="glass rounded-3xl p-6 md:p-7 flex items-center justify-between border-b-4 border-b-[#ec4899] hover:bg-slate-800/40 transition-colors group">
+              <div><div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 group-hover:text-slate-300 transition-colors">Engagement</div><div class="text-3xl md:text-4xl font-black text-white" id="stat-engagement">...</div></div>
+              <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#ec4899]/10 flex items-center justify-center text-[#ec4899] text-2xl md:text-3xl shadow-inner border border-[#ec4899]/20"><i class="fa-solid fa-heart"></i></div>
+            </div>
+            <div class="glass rounded-3xl p-6 md:p-7 flex items-center justify-between border-b-4 border-b-emerald-500 hover:bg-slate-800/40 transition-colors group">
+              <div><div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 group-hover:text-slate-300 transition-colors">System Health</div><div class="text-3xl md:text-4xl font-black text-emerald-400">100%</div></div>
+              <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-2xl md:text-3xl shadow-inner border border-emerald-500/20"><i class="fa-solid fa-server"></i></div>
+            </div>
+          </div>
+
+          <!-- Complex Data Row -->
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 md:gap-6">
+            <div class="xl:col-span-8 glass rounded-3xl p-6 md:p-8 flex flex-col min-h-[400px]">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="font-bold text-white text-base md:text-lg flex items-center"><i class="fa-solid fa-bolt text-[#8b5cf6] mr-2.5"></i>Live Audit Feed</h3>
+                <button onclick="App.showView('security')" class="admin-only-ui btn text-xs px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 text-slate-300 font-bold hidden shadow-sm">View All Logs</button>
+              </div>
+              <div class="overflow-y-auto flex-1 h-[250px] scrollbar border border-slate-800/60 rounded-2xl bg-[#0a101f]/80 shadow-inner">
+                <table class="w-full text-[13px]">
+                  <thead class="text-slate-500 border-b border-slate-800 sticky top-0 bg-[#0a101f] z-10 shadow-sm">
+                    <tr class="[&>th]:text-left [&>th]:font-extrabold [&>th]:px-5 [&>th]:py-3.5 uppercase tracking-widest text-[10px]"><th>Timestamp</th><th>Type</th><th>Identity / Target</th></tr>
+                  </thead>
+                  <tbody id="auditFeed" class="divide-y divide-slate-800/50 font-medium"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="xl:col-span-4 space-y-5 md:space-y-6">
+              <div class="glass rounded-3xl p-6 h-[220px] flex flex-col items-center justify-center relative">
+                <h3 class="font-bold text-base text-white absolute top-6 left-6 flex items-center"><i class="fa-solid fa-microchip text-emerald-500 mr-2.5"></i>CPU Load</h3>
+                <div class="relative w-36 h-36 mt-5">
+                  <canvas id="healthGauge" width="144" height="144"></canvas>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center pt-8">
+                    <div class="text-3xl font-black leading-none text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">34%</div>
+                    <div class="text-[10px] text-slate-500 mt-1.5 font-bold tracking-widest uppercase">Optimal</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- FULLY FUNCTIONAL QUICK ACTIONS -->
+              <div class="glass rounded-3xl p-6 md:p-8">
+                <h3 class="font-bold mb-5 text-base text-white flex items-center"><i class="fa-solid fa-bolt-lightning text-amber-500 mr-2.5"></i>Quick Actions</h3>
+                <div class="grid grid-cols-2 gap-3 md:gap-4">
+                  <button onclick="App.showView('content'); Content.openModal();" class="btn px-3 py-3.5 rounded-xl bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 text-[#8b5cf6] border border-[#8b5cf6]/30 text-xs font-bold transition-all text-center truncate shadow-sm"><i class="fa-solid fa-pen-nib mr-1.5"></i> New Post</button>
+                  <button onclick="App.showView('backup')" class="admin-only-ui btn px-3 py-3.5 rounded-xl bg-[#0ea5e9]/10 hover:bg-[#0ea5e9]/20 text-[#0ea5e9] border border-[#0ea5e9]/30 text-xs font-bold transition-all text-center truncate shadow-sm hidden"><i class="fa-solid fa-download mr-1.5"></i> Backup</button>
+                  <button onclick="App.showView('support')" class="btn px-3 py-3.5 rounded-xl bg-amber-600/10 hover:bg-amber-600/20 text-amber-400 border border-amber-600/30 text-xs font-bold transition-all text-center truncate shadow-sm"><i class="fa-solid fa-envelope mr-1.5"></i> Inbox</button>
+                  <button id="btn-quick-maint" onclick="Config.toggleMaintenance()" class="admin-only-ui btn px-3 py-3.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-xs font-bold transition-all text-center truncate shadow-sm hidden"><i class="fa-solid fa-shield-halved mr-1.5"></i> Maint: OFF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- USER DIRECTORY -->
+        <section id="view-users" class="view hidden space-y-4 md:space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+            <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">User Directory</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Hierarchical control of accounts, roles, and access states</p></div>
+            <div class="flex gap-2">
+              <button onclick="Users.openModal()" class="btn px-5 py-3 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] text-sm font-bold text-white shadow-lg shadow-[#8b5cf6]/25"><i class="fa-solid fa-user-plus mr-2"></i> Add User</button>
+            </div>
+          </div>
+          <div class="glass rounded-3xl p-6 md:p-8">
+            <div class="flex flex-col sm:flex-row gap-3 mb-6 bg-[#0a101f] p-3 rounded-2xl border border-slate-800 shadow-inner">
+              <div class="relative flex-1 sm:max-w-xs">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                <input type="text" id="userSearch" onkeyup="Handlers.filterUsers()" placeholder="Search by name or email..." class="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm outline-none focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 text-white transition-all font-medium shadow-inner">
+              </div>
+              <select id="userRoleFilter" onchange="Users.filter()" class="px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm outline-none text-slate-300 font-bold focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 transition-all cursor-pointer shadow-inner">
+                <option value="">All Roles</option><option>Superadmin</option><option>Admin</option><option>Moderator</option><option>User</option>
+              </select>
+              <button onclick="Users.bulkDelete()" class="btn px-5 py-3 rounded-xl bg-red-500/10 text-red-400 text-sm font-bold hover:bg-red-500/20 sm:ml-auto border border-red-500/20 transition-colors shadow-sm whitespace-nowrap"><i class="fa-solid fa-trash-can mr-2"></i> Delete Selected</button>
+            </div>
+            <div class="overflow-x-auto border border-slate-800/60 rounded-2xl bg-[#0a101f]/80 shadow-inner">
+              <table class="w-full text-sm font-medium min-w-max" id="userTableData">
+                <thead class="text-slate-400 border-b border-slate-800 bg-slate-900 shadow-sm">
+                  <tr class="[&>th]:text-left [&>th]:px-5 [&>th]:py-4 [&>th]:font-extrabold uppercase tracking-widest text-[10px]">
+                    <th class="w-12 pl-6"><input type="checkbox" id="checkAll" onchange="Users.toggleAll(this)" class="rounded border-slate-600 bg-slate-900 cursor-pointer w-4 h-4 accent-[#8b5cf6] focus:ring-[#8b5cf6]"></th>
+                    <th>User Profile</th><th>Role Hierarchy</th><th>Status</th><th>Last Login</th><th class="text-right pr-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTable" class="divide-y divide-slate-800/50"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ADMIN APPROVALS QUEUE VIEW -->
+        <section id="view-approvals" class="view hidden space-y-4 md:space-y-6">
+          <div class="mb-2">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Administrative Approvals Queue</h2>
+            <p class="text-sm text-slate-400 mt-1.5 font-medium">Review, grant access clearance, or decline staff requests</p>
+          </div>
+          <div class="glass rounded-3xl p-6 md:p-8">
+            <div class="overflow-x-auto border border-slate-800/60 rounded-2xl bg-[#0a101f]/80 shadow-inner">
+              <table class="w-full text-sm font-medium min-w-max">
+                <thead class="text-slate-400 border-b border-slate-800 bg-slate-900 shadow-sm">
+                  <tr class="[&>th]:text-left [&>th]:px-5 [&>th]:py-4 [&>th]:font-extrabold uppercase tracking-widest text-[10px]">
+                    <th class="pl-6">Applicant Details</th><th>Requested Role</th><th>Status Vector</th><th>Registered Timestamp</th><th class="text-right pr-6">Decision Logic</th>
+                  </tr>
+                </thead>
+                <tbody id="approvalsTable" class="divide-y divide-slate-800/50">
+                  <!-- Injected via JavaScript dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- CONTENT EDITOR -->
+        <section id="view-content" class="view hidden space-y-4 md:space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+            <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Content Repository</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Manage prophetic words, testimonies, and scheduled insights</p></div>
+            <button onclick="Content.openModal()" class="btn px-6 py-3 rounded-xl bg-[#0ea5e9] hover:bg-[#0284c7] text-sm font-bold text-white shadow-lg shadow-[#0ea5e9]/25 flex items-center justify-center"><i class="fa-solid fa-pen-nib mr-2"></i> Draft New Post</button>
+          </div>
+          <div class="glass rounded-3xl p-6 md:p-8">
+            <div class="overflow-x-auto border border-slate-800/60 rounded-2xl bg-[#0a101f]/80 shadow-inner">
+              <table class="w-full text-sm font-medium min-w-max">
+                <thead class="text-slate-400 border-b border-slate-800 bg-slate-900 shadow-sm">
+                  <tr class="[&>th]:text-left [&>th]:px-5 [&>th]:py-4 [&>th]:font-extrabold uppercase tracking-widest text-[10px]">
+                    <th class="pl-6">Title & Meta</th><th>Category</th><th>Status</th><th>Metrics Matrix</th><th>Last Updated</th><th class="text-right pr-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contentTable" class="divide-y divide-slate-800/50"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABOUT PAGE EDITOR -->
+        <section id="view-about" class="view hidden space-y-4 md:space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">About Profile Editor</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Manage the platform's public profile, typography, and imagery</p></div>
+            </div>
+            
+            <div class="glass rounded-3xl p-6 md:p-10 border-t-4 border-t-[#8b5cf6]">
+                <h3 class="font-bold text-white text-lg mb-8 flex items-center"><i class="fa-solid fa-address-card text-[#8b5cf6] mr-3"></i> Public Profile Configuration</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Col: Images & Meta -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-[#0a101f]/80 p-6 rounded-2xl border border-slate-800 shadow-inner">
+                            <label class="block text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Profile Picture (Avatar)</label>
+                            <div class="flex flex-col items-center gap-5">
+                                <div class="w-36 h-36 rounded-full p-1.5 border-2 border-[#8b5cf6]/50 bg-slate-900 shadow-[0_0_20px_rgba(139,92,246,0.15)] relative group">
+                                    <img id="aboutImgPreview" src="" class="w-full h-full rounded-full object-cover shadow-lg bg-slate-800 transition-opacity" alt="Profile Preview">
+                                    <div class="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onclick="document.getElementById('aboutImgFile').click()">
+                                        <i class="fa-solid fa-camera text-white text-xl"></i>
+                                    </div>
+                                </div>
+                                <input type="file" id="aboutImgFile" accept="image/*" class="hidden" onchange="About.handleImageUpload(event, 'aboutImgPreview', 'aboutImgBase64')">
+                                <input type="hidden" id="aboutImgBase64">
+                                <button onclick="document.getElementById('aboutImgFile').click()" class="btn px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-xs font-bold text-white shadow-sm w-full"><i class="fa-solid fa-upload mr-2"></i> Change Avatar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-[#0a101f]/80 p-6 rounded-2xl border border-slate-800 space-y-5 shadow-inner">
+                            <div><label class="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">Main Title</label><input id="aboutTitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none font-medium transition-all" /></div>
+                            <div><label class="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">Subtitle (Role/Position)</label><input id="aboutSubtitle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none font-medium transition-all" /></div>
+                        </div>
+
+                        <div class="bg-[#0a101f]/80 p-6 rounded-2xl border border-slate-800 space-y-5 shadow-inner">
+                            <div><label class="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">Featured Quote Text</label><textarea id="aboutQuoteText" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none font-medium resize-none transition-all scrollbar"></textarea></div>
+                            <div><label class="text-xs font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">Quote Author</label><input id="aboutQuoteAuthor" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none font-medium transition-all" /></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Col: Rich Text Editor -->
+                    <div class="lg:col-span-2 flex flex-col h-full min-h-[500px]">
+                        <div class="bg-[#0a101f]/80 rounded-2xl border border-slate-800 flex flex-col flex-1 overflow-hidden shadow-inner">
+                            <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center shrink-0">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Biography / Main Body Content</label>
+                                <!-- Rich Text Toolbar -->
+                                <div class="flex gap-2">
+                                    <input type="file" id="aboutBodyImgFile" accept="image/*" class="hidden" onchange="About.injectImageToBody(event)">
+                                    <button onclick="document.getElementById('aboutBodyImgFile').click()" class="btn px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-xs font-bold text-[#0ea5e9] shadow-sm flex items-center"><i class="fa-solid fa-image mr-1.5"></i> Insert Image</button>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-slate-900/30 border-b border-slate-800/50 text-[11px] font-medium text-slate-500 flex items-center">
+                                <i class="fa-solid fa-circle-info mr-2 text-[#8b5cf6]"></i> HTML tags are supported. Use &lt;p&gt; for paragraphs and &lt;h3&gt; for subheadings.
+                            </div>
+                            <textarea id="aboutBodyHTML" class="flex-1 w-full bg-transparent p-6 text-[14.5px] text-slate-300 focus:outline-none focus:ring-inset focus:ring-2 focus:ring-[#8b5cf6]/20 resize-none font-mono leading-relaxed scrollbar" placeholder="<p>Write biography here...</p>"></textarea>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-end">
+                            <button id="aboutSaveBtn" onclick="About.save()" class="btn px-8 py-4 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] text-sm font-black text-white shadow-lg shadow-[#8b5cf6]/25 w-full sm:w-auto uppercase tracking-wide"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Publish Profile Updates</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADVANCED SUPPORT & MESSAGING -->
+        <section id="view-support" class="view hidden h-[calc(100vh-160px)] md:h-[calc(100vh-180px)]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Support Operations</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Real-time end-to-end encrypted user communications</p></div>
+            </div>
+            
+            <div class="border border-slate-800 rounded-3xl flex w-full h-full overflow-hidden bg-[#0a101f]/80 relative shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+                
+                <!-- Left Sidebar: Users List (Absolute on Mobile, Relative on Desktop) -->
+                <div id="supportUserSidebar" class="absolute md:relative inset-y-0 left-0 z-30 w-full md:w-[340px] bg-[#050a14] border-r border-slate-800 flex flex-col shrink-0 transition-transform duration-300 transform md:translate-x-0 shadow-2xl md:shadow-none">
+                    <div class="p-6 border-b border-slate-800 bg-slate-900/50 shrink-0">
+                        <div class="flex justify-between items-center mb-5">
+                            <h3 class="text-white font-extrabold text-lg flex items-center"><i class="fa-solid fa-inbox text-[#0ea5e9] mr-2.5"></i>Active Tickets</h3>
+                            <button onclick="Support.toggleSidebar()" class="text-[#8b5cf6] hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-800 md:hidden btn">
+                                <i class="fa-solid fa-bars-staggered"></i>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="supportSearch" onkeyup="Handlers.filterSupport()" placeholder="Search active users..." class="w-full bg-[#0a101f] border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-sm font-medium focus:outline-none focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 text-white shadow-inner transition-all">
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto scrollbar divide-y divide-slate-800/60 bg-[#050a14]" id="supportUserList">
+                        <!-- User items injected here -->
+                    </div>
+                </div>
+                
+                <!-- Right Sidebar: Chat Area -->
+                <div class="flex-1 flex flex-col relative bg-transparent min-w-0" id="supportChatArea">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 z-0 bg-[#050a14]" id="supportEmptyState">
+                        <div class="w-28 h-28 rounded-full bg-slate-800/30 flex items-center justify-center mb-6 shadow-inner border border-slate-800"><i class="fa-regular fa-comments text-5xl text-slate-600"></i></div>
+                        <p class="text-lg font-bold text-slate-300 tracking-tight">Select a user to initiate secure chat</p>
+                        <p class="text-xs text-slate-500 mt-2 font-medium">End-to-End Encrypted Support Channel</p>
+                        <button onclick="Support.toggleSidebar()" class="btn mt-8 px-8 py-3.5 bg-[#8b5cf6] hover:bg-[#7c3aed] rounded-xl text-sm font-bold text-white md:hidden shadow-lg shadow-[#8b5cf6]/20 flex items-center"><i class="fa-solid fa-users mr-2"></i> View User List</button>
+                    </div>
+                    
+                    <!-- Chat Header -->
+                    <div id="supportChatHeader" class="p-4 sm:p-6 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between z-10 hidden shrink-0 backdrop-blur-md shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <button onclick="Support.toggleSidebar()" class="btn text-slate-400 hover:text-white transition-colors bg-slate-800 w-10 h-10 rounded-xl flex items-center justify-center shrink-0 md:hidden border border-slate-700 shadow-sm">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#8b5cf6] to-[#ec4899] text-white flex items-center justify-center font-black text-lg shrink-0 shadow-md border border-white/10" id="schatAvatar">U</div>
+                            <div class="min-w-0">
+                                <h4 class="text-base sm:text-lg font-black text-white leading-tight truncate" id="schatName">User Name</h4>
+                                <div class="text-[10px] sm:text-[11px] text-emerald-400 font-bold flex items-center gap-1.5 mt-1 uppercase tracking-wider"><i class="fa-solid fa-circle text-[7px] animate-pulse"></i> Encrypted Session Active</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Messages -->
+                    <div id="supportMessages" class="flex-1 overflow-y-auto scrollbar p-4 sm:p-8 space-y-6 z-10 hidden flex-col bg-transparent scroll-smooth pb-6">
+                        <!-- Messages flow here -->
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div id="supportInputArea" class="p-4 sm:p-6 bg-slate-900/90 border-t border-slate-800 gap-3 items-end shrink-0 z-10 hidden backdrop-blur-xl shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
+                        <textarea id="supportInput" rows="1" class="flex-1 bg-[#050a14] border border-slate-700 rounded-2xl px-5 py-4 text-[14px] sm:text-[15px] font-medium text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none resize-none max-h-32 scrollbar placeholder:text-slate-500 shadow-inner leading-relaxed transition-all" placeholder="Type an administrative response..." onkeydown="if(event.keyCode===13 && !event.shiftKey){event.preventDefault(); Support.sendMessage();}"></textarea>
+                        <button id="supportSendBtn" onclick="Support.sendMessage()" class="btn w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-white flex items-center justify-center transition-all shadow-lg shadow-[#8b5cf6]/30 shrink-0 text-xl border border-white/10"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECURITY LOGS -->
+        <section id="view-security" class="view hidden space-y-4 md:space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+            <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Security & Audit Engine</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Immutable tracking of all systemic actions</p></div>
+            <div class="flex gap-3 flex-wrap">
+              <div class="relative">
+                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                 <input type="text" id="auditSearch" placeholder="Search parameters..." onkeyup="Handlers.filterSecurity()" class="w-full sm:w-64 pl-11 pr-4 py-3 rounded-xl bg-[#0a101f] border border-slate-800 text-sm font-medium text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none shadow-inner transition-all">
+              </div>
+              <select id="auditFilter" onchange="Security.applyFilter()" class="px-4 py-3 rounded-xl bg-[#0a101f] border border-slate-800 text-sm font-bold outline-none text-slate-300 focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 cursor-pointer shadow-inner transition-all">
+                  <option value="ALL">All Events</option><option value="AUTH">Authentication</option><option value="USER">Client Activity</option><option value="CONTENT">Content Actions</option><option value="SYSTEM">System Overrides</option>
+              </select>
+              <button onclick="Security.exportCSV()" class="btn px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-bold text-white border border-slate-700 shadow-sm flex items-center"><i class="fa-solid fa-file-csv mr-2"></i> Export Report</button>
+            </div>
+          </div>
+          <div class="glass rounded-3xl p-6 md:p-8 flex flex-col h-[650px] md:h-[750px]">
+            <div class="flex-1 overflow-x-auto overflow-y-auto scrollbar border border-slate-800/60 rounded-2xl bg-[#0a101f]/80 shadow-inner">
+               <table class="w-full text-[13px] font-mono font-medium min-w-max" id="auditTableData">
+                 <thead class="text-slate-400 border-b border-slate-800 sticky top-0 bg-slate-900 shadow-sm z-10">
+                   <tr class="[&>th]:text-left [&>th]:px-5 [&>th]:py-4 uppercase tracking-widest text-[10px] font-extrabold">
+                     <th class="pl-6">Timestamp UTC</th><th>Event Vector</th><th>Execution</th><th>Identity Context</th><th>Detailed Telemetry</th>
+                   </tr>
+                 </thead>
+                 <tbody id="securityList" class="divide-y divide-slate-800/50"></tbody>
+               </table>
+            </div>
+            <!-- Pagination Controls -->
+            <div class="flex justify-between items-center mt-6 pt-5 border-t border-slate-800 shrink-0">
+                <div class="text-sm font-bold text-slate-400 bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-800" id="auditPageInfo">Page 1 of 1</div>
+                <div class="flex gap-2">
+                    <button onclick="Security.prevPage()" class="btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 shadow-sm transition-colors">Previous</button>
+                    <button onclick="Security.nextPage()" class="btn px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 shadow-sm transition-colors">Next Data</button>
+                </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ANALYTICS -->
+        <section id="view-analytics" class="view hidden space-y-4 md:space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+            <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Advanced Analytics</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Deep computational insights into platform trajectory</p></div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-6">
+             <div class="glass rounded-3xl p-8 border-b-4 border-b-[#8b5cf6] relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-[#8b5cf6]/10 rounded-full blur-2xl group-hover:bg-[#8b5cf6]/20 transition-all"></div>
+                <div class="text-[12px] text-slate-400 font-bold uppercase tracking-widest mb-3">Total Content Views</div>
+                <div class="text-5xl font-black text-white drop-shadow-md" id="stat-total-views">0</div>
+             </div>
+             <div class="glass rounded-3xl p-8 border-b-4 border-b-[#0ea5e9] relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-[#0ea5e9]/10 rounded-full blur-2xl group-hover:bg-[#0ea5e9]/20 transition-all"></div>
+                <div class="text-[12px] text-slate-400 font-bold uppercase tracking-widest mb-3">Total Engagement Matrix</div>
+                <div class="text-5xl font-black text-white drop-shadow-md" id="stat-total-eng">0</div>
+             </div>
+             <div class="glass rounded-3xl p-8 border-b-4 border-b-[#10b981] relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-[#10b981]/10 rounded-full blur-2xl group-hover:bg-[#10b981]/20 transition-all"></div>
+                <div class="text-[12px] text-slate-400 font-bold uppercase tracking-widest mb-3">Active Accounts (14 Days)</div>
+                <div class="text-5xl font-black text-white drop-shadow-md" id="stat-active-users">0</div>
+             </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
+              <div class="lg:col-span-2 glass rounded-3xl p-8 w-full border border-slate-800 bg-[#0a101f]/60 shadow-inner">
+                <div class="flex justify-between items-center mb-8">
+                  <h3 class="font-bold text-lg text-white flex items-center"><i class="fa-solid fa-chart-simple text-[#8b5cf6] mr-3"></i>Content Engagement Top Chart</h3>
+                  <div class="flex items-center gap-5 text-xs font-bold text-slate-400 bg-slate-900/50 px-4 py-2 rounded-lg border border-slate-800">
+                    <span class="flex items-center gap-2"><div class="w-3.5 h-3.5 rounded-md bg-[#0ea5e9] shadow-[0_0_5px_rgba(14,165,233,0.5)]"></div> Views</span>
+                    <span class="flex items-center gap-2"><div class="w-3.5 h-3.5 rounded-md bg-[#ec4899] shadow-[0_0_5px_rgba(236,72,153,0.5)]"></div> Likes</span>
+                  </div>
+                </div>
+                <div class="h-[360px] relative w-full"><canvas id="analyticsChart"></canvas></div>
+              </div>
+              <div class="glass rounded-3xl p-8 w-full border border-slate-800 bg-[#0a101f]/60 flex flex-col shadow-inner">
+                  <h3 class="font-bold text-lg text-white mb-8 flex items-center"><i class="fa-solid fa-chart-pie text-[#0ea5e9] mr-3"></i>User Retention Distribution</h3>
+                  <div class="flex-1 relative flex items-center justify-center min-h-[250px]"><canvas id="userDistChart"></canvas></div>
+              </div>
+          </div>
+        </section>
+
+        <!-- BACKUPS -->
+        <section id="view-backup" class="view hidden space-y-4 md:space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+              <div><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Database Architecture</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Securely export and physically overwrite complete server states</p></div>
+          </div>
+          <div class="grid lg:grid-cols-2 gap-6 md:gap-8">
+            <div class="glass rounded-3xl p-10 border-t-4 border-t-[#3b82f6] text-center flex flex-col items-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-b from-[#3b82f6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="w-24 h-24 rounded-[2rem] bg-[#3b82f6]/10 text-[#3b82f6] flex items-center justify-center text-4xl mb-8 shadow-inner border border-[#3b82f6]/20"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                <h3 class="text-2xl font-black text-white mb-3 tracking-tight">Export Database Snapshot</h3>
+                <p class="text-sm text-slate-400 mb-10 max-w-sm leading-relaxed font-medium">Download a physically encoded JSON snapshot containing every single user, post, comment, configuration, and audit log currently residing on the server cluster.</p>
+                <button id="btnExportDB" onclick="Backup.export()" class="btn px-8 py-4 rounded-xl bg-gradient-to-r from-[#3b82f6] to-[#2563eb] hover:from-[#2563eb] hover:to-[#1d4ed8] text-white font-black tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] w-full max-w-[280px] border border-white/10">Generate JSON Export</button>
+            </div>
+            <div class="glass rounded-3xl p-10 border-t-4 border-t-red-500 text-center flex flex-col items-center bg-red-950/10 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="w-24 h-24 rounded-[2rem] bg-red-500/10 text-red-500 flex items-center justify-center text-4xl mb-8 shadow-inner border border-red-500/20"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h3 class="text-2xl font-black text-white mb-3 tracking-tight">Destructive Restore</h3>
+                <p class="text-sm text-slate-400 mb-10 max-w-sm leading-relaxed font-medium">Upload a valid JSON backup file. <span class="text-red-400 font-bold">WARNING:</span> This will instantaneously wipe and overwrite the live production database matrix.</p>
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="Backup.import(event)">
+                <button id="btnImportDB" onclick="document.getElementById('importFile').click()" class="btn px-8 py-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-rose-600 hover:to-rose-800 text-white font-black tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] w-full max-w-[280px] border border-white/10">Upload & Overwrite</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- CONFIGURATION -->
+        <section id="view-config" class="view hidden space-y-4 md:space-y-6">
+          <div class="mb-2"><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">System Core Configuration</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Manage macro-level client availability and operating states</p></div>
+          
+          <!-- SUPERADMIN ONLY CONFIG BLOCK -->
+          <div class="superadmin-only-ui glass rounded-3xl p-8 md:p-10 border border-amber-900/50 bg-amber-900/10 mb-8 hidden shadow-[0_0_30px_rgba(245,158,11,0.05)]">
+              <h3 class="font-bold mb-8 text-lg text-amber-500 border-b border-amber-900/50 pb-5 flex items-center"><i class="fa-solid fa-crown mr-3 text-xl"></i>Superadmin Protocol Settings</h3>
+              <div class="grid lg:grid-cols-2 gap-8">
+                  <div class="space-y-6">
+                      <label class="flex items-center justify-between cursor-pointer group bg-amber-950/30 p-5 rounded-2xl border border-amber-900/50 shadow-inner">
+                          <span class="text-amber-300 font-bold tracking-wide">Total System Lockdown 🔐</span>
+                          <input type="checkbox" id="cfgLockdown" class="toggle bg-amber-900/50 border-amber-700">
+                      </label>
+                      <label class="flex items-center justify-between cursor-pointer group bg-[#0a101f]/60 p-5 rounded-2xl border border-slate-800 shadow-inner">
+                          <span class="text-slate-300 font-bold tracking-wide">Enable Admin Application Form</span>
+                          <input type="checkbox" id="cfgAdminReg" class="toggle">
+                      </label>
+                  </div>
+                  <div class="space-y-5 bg-[#0a101f]/80 p-6 rounded-2xl border border-slate-800 shadow-inner">
+                      <h4 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest flex items-center"><i class="fa-solid fa-bullhorn text-amber-500 mr-2"></i>Broadcast Announcement</h4>
+                      <input type="text" id="announcementMsg" placeholder="System alert message text..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-3.5 text-sm font-medium text-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 outline-none shadow-inner transition-all" />
+                      <div class="flex flex-col sm:flex-row gap-3">
+                          <input type="datetime-local" id="announcementExpiry" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-5 py-3.5 text-sm font-medium text-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 outline-none shadow-inner transition-all" />
+                          <button onclick="Config.broadcast()" class="btn px-6 py-3.5 bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white text-sm font-black tracking-widest uppercase rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.3)] whitespace-nowrap border border-white/10"><i class="fa-solid fa-satellite-dish mr-2"></i> Transmit</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- GLOBAL FEATURE TOGGLES -->
+          <div class="grid lg:grid-cols-2 gap-6 md:gap-8">
+            <div class="glass rounded-3xl p-8 md:p-10 border border-slate-800">
+              <h3 class="font-bold mb-8 text-lg text-white border-b border-slate-800 pb-5 flex items-center"><i class="fa-solid fa-sliders text-[#8b5cf6] mr-3 text-xl"></i>Global Feature Toggles</h3>
+              <div class="space-y-6 text-sm">
+                <label class="flex items-center justify-between cursor-pointer group bg-[#0a101f]/60 p-5 rounded-2xl border border-slate-800 shadow-inner">
+                    <span class="text-slate-300 font-bold tracking-wide group-hover:text-white transition-colors">Enable Public Registration</span>
+                    <input type="checkbox" id="cfgReg" class="toggle">
+                </label>
+                <label class="flex items-center justify-between cursor-pointer group bg-[#0a101f]/60 p-5 rounded-2xl border border-slate-800 shadow-inner">
+                    <span class="text-slate-300 font-bold tracking-wide group-hover:text-white transition-colors">Enable Public Comments</span>
+                    <input type="checkbox" id="cfgComm" class="toggle">
+                </label>
+              </div>
+            </div>
+            <div class="glass rounded-3xl p-8 md:p-10 border border-red-900/30 bg-red-950/10">
+              <h3 class="font-bold mb-8 text-lg text-red-400 border-b border-red-900/50 pb-5 flex items-center"><i class="fa-solid fa-shield-virus mr-3 text-xl"></i>Emergency Maintenace Protocol</h3>
+              <div class="space-y-6">
+                <label class="flex items-center justify-between cursor-pointer group bg-red-950/30 p-5 rounded-2xl border border-red-900/50 shadow-inner">
+                    <span class="text-red-300 font-bold tracking-wide">Activate Maintenance Firewall</span>
+                    <input type="checkbox" id="cfgMaint" class="toggle bg-red-900/50 border-red-700 focus:ring-red-500">
+                </label>
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-2 pl-1 uppercase tracking-wider">Client-Facing Display Message</label>
+                  <textarea id="cfgMaintMsg" rows="5" class="w-full bg-[#0a101f]/80 border border-slate-700 rounded-2xl px-5 py-4 text-sm font-medium text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/30 outline-none placeholder:text-slate-600 resize-none shadow-inner transition-all scrollbar" placeholder="We are currently performing scheduled maintenance..."></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button id="btnSaveConfig" onclick="Config.save()" class="btn w-full mt-6 py-5 rounded-2xl bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-sm md:text-base font-black tracking-widest uppercase text-white shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-all border border-white/10"><i class="fa-solid fa-cloud-arrow-up mr-2.5"></i> Deploy Global Configurations</button>
+        </section>
+
+        <!-- SYSTEM HEALTH -->
+        <section id="view-health" class="view hidden space-y-4 md:space-y-6">
+          <div class="mb-2"><h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">Hardware Telemetry</h2><p class="text-sm text-slate-400 mt-1.5 font-medium">Live simulated monitoring of computational stress parameters</p></div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mt-6">
+            <div class="glass rounded-3xl p-8 md:p-10 flex flex-col items-center border-t-4 border-t-[#0ea5e9] shadow-inner relative overflow-hidden group"><div class="absolute inset-0 bg-gradient-to-b from-[#0ea5e9]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative w-36 h-36"><canvas id="gaugeMem"></canvas></div><div class="text-[11px] mt-6 text-white font-bold tracking-widest uppercase">RAM USAGE <span class="text-slate-400 font-mono ml-1.5">62%</span></div></div>
+            <div class="glass rounded-3xl p-8 md:p-10 flex flex-col items-center border-t-4 border-t-[#ec4899] shadow-inner relative overflow-hidden group"><div class="absolute inset-0 bg-gradient-to-b from-[#ec4899]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative w-36 h-36"><canvas id="gaugeDisk"></canvas></div><div class="text-[11px] mt-6 text-white font-bold tracking-widest uppercase">DISK I/O <span class="text-slate-400 font-mono ml-1.5">28%</span></div></div>
+            <div class="glass rounded-3xl p-8 md:p-10 flex flex-col items-center border-t-4 border-t-[#10b981] shadow-inner relative overflow-hidden group"><div class="absolute inset-0 bg-gradient-to-b from-[#10b981]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative w-36 h-36"><canvas id="gaugeNet"></canvas></div><div class="text-[11px] mt-6 text-white font-bold tracking-widest uppercase">NETWORK <span class="text-slate-400 font-mono ml-1.5">45Mb/s</span></div></div>
+            <div class="glass rounded-3xl p-8 md:p-10 flex flex-col items-center border-t-4 border-t-[#f59e0b] shadow-inner relative overflow-hidden group"><div class="absolute inset-0 bg-gradient-to-b from-[#f59e0b]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative w-36 h-36"><canvas id="gaugeDB"></canvas></div><div class="text-[11px] mt-6 text-white font-bold tracking-widest uppercase">DB LATENCY <span class="text-slate-400 font-mono ml-1.5">12ms</span></div></div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- User Edit/Add Modal -->
+  <div id="modal-user" class="fixed inset-0 bg-black/80 z-[110] hidden flex-col items-center justify-center p-4 backdrop-blur-xl transition-all duration-300">
+    <div class="bg-slate-900 w-full max-w-md rounded-[2rem] p-8 md:p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-700/50 transform transition-all relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#8b5cf6] to-[#0ea5e9]"></div>
+      <h3 class="text-2xl font-black text-white mb-8 tracking-tight" id="userModalTitle">Edit User Credentials</h3>
+      <input type="hidden" id="userId">
+      <div class="space-y-6">
+        <div><label class="text-xs font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Email (Primary Key ID)</label><input id="userEmail" type="email" placeholder="user@example.com" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none shadow-inner transition-all" /></div>
+        <div><label class="text-xs font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Full Name</label><input id="userName" placeholder="John Doe" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none shadow-inner transition-all" /></div>
+        <div><label class="text-xs font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Raw Password</label><input id="userPassword" type="text" placeholder="Min 6 characters" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-medium text-white focus:border-[#8b5cf6] focus:ring-2 focus:ring-[#8b5cf6]/30 outline-none shadow-inner transition-all" /></div>
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">System Role Hierarchy</label>
+            <select id="userRole" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-bold text-white focus:border-[#8b5cf6] outline-none cursor-pointer transition-colors">
+              <option value="User">User</option>
+              <option value="Moderator">Moderator</option>
+              <option value="Admin">Admin</option>
+              <option value="Superadmin">Superadmin</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Access Status</label>
+            <select id="userStatus" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3.5 text-sm font-bold text-white focus:border-red-500 outline-none cursor-pointer transition-colors"><option>Active</option><option>Suspended</option></select>
+          </div>
+        </div>
+        <div class="admin-only-ui hidden bg-slate-800/30 p-4 rounded-xl border border-slate-700/50">
+          <label class="text-xs font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider"><i class="fa-solid fa-shield-halved text-[#8b5cf6] mr-1.5"></i> Approval Clearance State</label>
+          <select id="userApprovalStatus" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white focus:border-[#8b5cf6] outline-none cursor-pointer transition-colors"><option>Approved</option><option>Pending</option><option>Rejected</option></select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-4 mt-10">
+        <button onclick="document.getElementById('modal-user').classList.add('hidden')" class="btn px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-bold text-white border border-slate-700 transition-colors">Cancel</button>
+        <button id="btnSaveUser" onclick="Users.save()" class="btn px-8 py-3 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:from-[#7c3aed] hover:to-[#6d28d9] text-sm text-white font-black tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(139,92,246,0.3)]">Commit User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Edit/Add Modal -->
+  <div id="modal-content" class="fixed inset-0 bg-black/80 z-[110] hidden flex-col items-center justify-center p-4 backdrop-blur-xl transition-all duration-300">
+    <div class="bg-slate-900 w-full max-w-4xl rounded-[2rem] p-6 md:p-8 shadow-[0_0_60px_rgba(0,0,0,0.6)] border border-slate-700/50 transform transition-all max-h-[90vh] flex flex-col relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#0ea5e9] to-[#8b5cf6]"></div>
+      <div class="flex justify-between items-center mb-6 shrink-0 border-b border-slate-800 pb-5">
+          <h3 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="contentModalTitle"><i class="fa-solid fa-pen-nib text-[#0ea5e9] mr-3"></i> Content Drafting Engine</h3>
+          <button onclick="document.getElementById('modal-content').classList.add('hidden')" class="btn w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors border border-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="overflow-y-auto scrollbar pr-4 flex-1 space-y-6">
+        <input type="hidden" id="contentId">
+        <div><label class="text-xs font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Headline Title</label><input id="contentTitle" placeholder="The Lord's message..." class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-5 py-4 text-[15px] font-medium text-white focus:border-[#0ea5e9] focus:ring-2 focus:ring-[#0ea5e9]/30 outline-none shadow-inner transition-all" /></div>
+        
+        <!-- Direct Image Upload System -->
+        <div class="bg-slate-800/30 p-5 rounded-2xl border border-slate-700/50">
+            <label class="text-xs font-bold text-slate-400 ml-1 block mb-3 uppercase tracking-wider">Featured Card Image</label>
+            <div class="flex items-center gap-6">
+                <input type="file" id="contentImageFile" accept="image/*" class="hidden" onchange="Content.handleImageUpload(event)">
+                <button onclick="document.getElementById('contentImageFile').click()" class="btn px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl text-xs font-bold text-white transition-all shadow-md"><i class="fa-solid fa-cloud-arrow-up mr-2 text-[#0ea5e9]"></i> Import File</button>
+                <img id="contentImagePreview" src="" class="hidden h-16 w-24 object-cover rounded-xl border border-slate-600 shadow-md">
+            </div>
+            <input type="hidden" id="contentImageBase64">
+        </div>
+
+        <div>
+            <label class="text-xs font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Prophetic Body (Raw HTML Permitted)</label>
+            <textarea id="contentBody" rows="8" class="w-full bg-[#050a14] border border-slate-700 rounded-2xl px-6 py-5 text-[14.5px] font-mono text-slate-300 focus:border-[#0ea5e9] focus:ring-2 focus:ring-[#0ea5e9]/30 outline-none placeholder:text-slate-600 resize-none shadow-inner leading-relaxed transition-all scrollbar" placeholder="<p>Write the revelation here...</p>"></textarea>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-5 items-start bg-slate-800/30 p-5 rounded-2xl border border-slate-700/50">
+          <div><label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Classification</label><input id="contentCategory" value="Prophecy" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-white focus:border-[#0ea5e9] outline-none transition-all" /></div>
+          <div><label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Visibility State</label><select id="contentStatus" onchange="Content.toggleScheduleInput()" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white focus:border-[#0ea5e9] outline-none cursor-pointer transition-all"><option>Published</option><option>Draft</option><option>Scheduled</option></select></div>
+          <div><label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Likes Override</label><input id="contentLikes" type="number" min="0" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-white focus:border-[#0ea5e9] outline-none transition-all" /></div>
+          <div><label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2 uppercase tracking-wider">Shares Override</label><input id="contentShares" type="number" min="0" class="w-full bg-[#050a14] border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-white focus:border-[#0ea5e9] outline-none transition-all" /></div>
+          <div class="flex flex-col pb-2 pl-2 pt-6">
+              <label class="flex items-center gap-3 cursor-pointer group">
+                  <span class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">Pin High 📌</span>
+                  <input type="checkbox" id="contentPinned" class="toggle focus:ring-2 focus:ring-primary/50">
+              </label>
+          </div>
+        </div>
+
+        <div id="scheduleContainer" class="hidden bg-indigo-900/20 p-5 rounded-2xl border border-indigo-500/30">
+            <label class="text-xs font-bold text-indigo-300 ml-1 block mb-3 uppercase tracking-wider"><i class="fa-solid fa-clock mr-1.5"></i> Scheduled Publish Time (Local Timezone)</label>
+            <input type="datetime-local" id="contentScheduledFor" class="w-full bg-[#050a14] border border-indigo-500/50 rounded-xl px-5 py-3.5 text-sm font-medium text-white focus:border-[#8b5cf6] outline-none shadow-inner transition-all" />
+            <p class="text-[11px] text-indigo-200/70 mt-3 font-medium leading-relaxed"><i class="fa-solid fa-microchip mr-1.5"></i> **Advanced Background Mode Active:** Decentralized Web Workers will aggressively calculate this timestamp. The post will execute mathematically when the time resolves, independent of your active tab state.</p>
+        </div>
+
+      </div>
+      <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-slate-800 shrink-0">
+        <button onclick="document.getElementById('modal-content').classList.add('hidden')" class="btn px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-bold text-white border border-slate-700 transition-colors">Discard Draft</button>
+        <button id="btnSaveContent" onclick="Content.save()" class="btn px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] text-sm text-white font-black tracking-widest uppercase transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] border border-white/10"><i class="fa-solid fa-server mr-2"></i> Commit Payload to DB</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments Manage Modal -->
+  <div id="modal-comments" class="fixed inset-0 bg-black/80 z-[110] hidden flex-col items-center justify-center p-4 backdrop-blur-xl transition-all duration-300">
+    <div class="bg-slate-900 w-full max-w-2xl rounded-[2rem] p-6 md:p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-700/50 transform transition-all max-h-[85vh] flex flex-col relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#3b82f6] to-[#0ea5e9]"></div>
+      <div class="flex justify-between items-center mb-6 pb-5 border-b border-slate-800 shrink-0">
+          <h3 class="text-2xl font-black text-white tracking-tight"><i class="fa-solid fa-comments text-blue-400 mr-3"></i>Moderation Queue</h3>
+          <button onclick="document.getElementById('modal-comments').classList.add('hidden')" class="btn w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors border border-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="commentsList" class="overflow-y-auto scrollbar pr-3 flex-1 space-y-5">
+          <!-- Comments injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Overlay Container (Highest Z-Index) -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- FIREBASE AND APP LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, onChildAdded, onChildChanged, onChildRemoved, set, push, remove, update, query, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC62LYyePrJv28CsNstvo5r-jssqT0HSZM",
+      authDomain: "gospelprophecy-15f18.firebaseapp.com",
+      projectId: "gospelprophecy-15f18",
+      storageBucket: "gospelprophecy-15f18.firebasestorage.app",
+      messagingSenderId: "116748115311",
+      appId: "1:116748115311:web:376f8530f95b1955301c9a",
+      measurementId: "G-D4RYBRWGHF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Advanced Helpers
+    const encodeEmail = email => email.replace(/[.#$\[\]]/g, ',');
+    const decodeEmail = encoded => encoded.replace(/,/g, '.');
+
+    // Role Hierarchy Matrix (Higher Number = More Authority)
+    window.ROLE_LEVELS = {
+        'User': 1,
+        'Moderator': 2,
+        'Admin': 3,
+        'Superadmin': 4
+    };
+
+    // ==========================================
+    // GLOBAL APP HANDLERS & UTILS
+    // ==========================================
+    window.App = {
+      debounce: (func, wait) => {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      },
+      toast: (message, type = 'info') => {
+        const container = document.getElementById('toastContainer');
+        if(!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let iconClass = 'fa-circle-info';
+        if (type === 'error') iconClass = 'fa-circle-xmark';
+        if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+        if (type === 'success') iconClass = 'fa-circle-check';
+        if (type === 'loading') iconClass = 'fa-circle-notch fa-spin';
+
+        toast.innerHTML = `<i class="fa-solid ${iconClass} text-lg"></i><span>${message}</span>`;
+        container.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+            // Force reflow
+            void toast.offsetWidth;
+            toast.classList.add('show');
+        });
+        setTimeout(() => { 
+            toast.classList.remove('show'); 
+            setTimeout(() => toast.remove(), 400); 
+        }, 4500);
+      },
+      showView: (id) => {
+        // RBAC validation runtime check
+        if(window.AuthEngine && window.AuthEngine.currentActiveSession && !['Superadmin', 'Admin'].includes(window.AuthEngine.currentActiveSession.role)) {
+          if(['approvals', 'security', 'health', 'backup', 'config'].includes(id)) {
+            App.toast("Access Rejection: Clearance state context invalid.", "error");
+            return;
+          }
+        }
+
+        window.currentViewId = id;
+        document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(`view-${id}`);
+        if(target) {
+            target.classList.remove('hidden');
+        }
+        
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const btn = document.querySelector(`.nav-item[onclick="App.showView('${id}')"]`);
+        if(btn) btn.classList.add('active');
+
+        if(window.innerWidth < 768) {
+          document.getElementById('sidebar').classList.add('-translate-x-full');
+          document.getElementById('sidebar-overlay').classList.add('hidden');
+        }
+
+        // Delay heavy rendering until view change is painted
+        requestAnimationFrame(() => {
+            if(id === 'analytics') window.Analytics.render();
+            if(id === 'health') window.Health.render();
+            if(id === 'security') window.Security.renderPage();
+            if(id === 'approvals') window.Users.renderApprovalsQueue();
+        });
+      },
+      toggleSidebar: () => {
+        document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.toggle('hidden');
+      }
+    };
+
+    // Global Registry for Debounced Handlers ensuring they aren't recreated on every keyup event
+    window.Handlers = {
+      filterUsers: App.debounce(() => { if(window.Users) window.Users.filter(); }, 250),
+      filterSupport: App.debounce(() => { if(window.Support) window.Support.filterUsers(); }, 250),
+      filterSecurity: App.debounce(() => { if(window.Security) window.Security.applyFilter(); }, 250)
+    };
+
+    // ==========================================
+    // INDEXEDDB LOCAL CACHING ENGINE (Ultra-Fast Load)
+    // ==========================================
+    const IDB = {
+        db: null,
+        init: async () => {
+            return new Promise((resolve) => {
+                const req = indexedDB.open('GospelAdminDB_V2', 1);
+                req.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    if(!db.objectStoreNames.contains('cache')) {
+                        db.createObjectStore('cache');
+                    }
+                };
+                req.onsuccess = e => { IDB.db = e.target.result; resolve(); };
+                req.onerror = () => resolve(); // Graceful degrade if IDB is blocked by browser policies
+            });
+        },
+        set: async (key, val) => {
+            if(!IDB.db) return;
+            return new Promise(resolve => {
+                const tx = IDB.db.transaction('cache', 'readwrite');
+                const req = tx.objectStore('cache').put(val, key);
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => resolve();
+            });
+        },
+        get: async (key) => {
+            if(!IDB.db) return null;
+            return new Promise(resolve => {
+                const tx = IDB.db.transaction('cache', 'readonly');
+                const req = tx.objectStore('cache').get(key);
+                req.onsuccess = e => resolve(e.target.result);
+                req.onerror = () => resolve(null);
+            });
+        }
+    };
+
+    // ==========================================
+    // SYSTEM LOCKDOWN ENGINE
+    // ==========================================
+    window.Lockdown = {
+        engaged: false,
+        chatUnsubs:[],
+        engage: () => {
+            if(window.Lockdown.engaged) return;
+            window.Lockdown.engaged = true;
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('lockdown-container').classList.remove('hidden');
+            document.getElementById('lockdown-container').classList.add('flex');
+            window.Lockdown.initChat();
+        },
+        disengage: () => {
+            if(!window.Lockdown.engaged) return;
+            window.Lockdown.engaged = false;
+            document.getElementById('lockdown-container').classList.add('hidden');
+            document.getElementById('lockdown-container').classList.remove('flex');
+            
+            if (window.AuthEngine && window.AuthEngine.currentActiveSession && window.AuthEngine.currentActiveSession.approvalStatus === 'Approved') {
+                document.getElementById('app-container').classList.remove('hidden');
+            }
+            window.Lockdown.chatUnsubs.forEach(fn => { if(typeof fn === 'function') fn(); });
+            window.Lockdown.chatUnsubs =[];
+        },
+        initChat: () => {
+            const userId = window.AuthEngine.currentActiveSession ? window.AuthEngine.currentActiveSession.key : null;
+            if(!userId) return;
+            
+            const chatRef = ref(db, `support_chats/${userId}/messages`);
+            const container = document.getElementById('lockdown-messages');
+            container.innerHTML = '';
+            
+            window.Lockdown.chatUnsubs.push(onChildAdded(chatRef, snap => {
+                if(!snap.exists()) return;
+                const m = snap.val();
+                const div = document.createElement('div');
+                div.className = `flex flex-col mb-2 ${m.sender === 'admin' ? 'items-start' : 'items-end'}`;
+                const isSuperAdmin = m.sender === 'admin';
+                div.innerHTML = `<div class="msg-bubble ${isSuperAdmin ? 'msg-user' : 'msg-admin'}" style="${isSuperAdmin ? 'border-left: 3px solid #f59e0b; border-bottom-left-radius: 4px; border-bottom-right-radius: 16px;' : 'border-bottom-right-radius: 4px; border-bottom-left-radius: 16px;'}">${m.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}<span class="msg-time">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+                
+                requestAnimationFrame(() => {
+                    container.appendChild(div);
+                    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+                });
+            }));
+        },
+        sendMessage: async () => {
+            const input = document.getElementById('lockdown-input');
+            const text = input.value.trim();
+            const userId = window.AuthEngine.currentActiveSession ? window.AuthEngine.currentActiveSession.key : null;
+            if(!text || !userId) return;
+            
+            input.disabled = true;
+            try {
+                const t = Date.now();
+                await push(ref(db, `support_chats/${userId}/messages`), { text, sender: 'user', timestamp: t });
+                await update(ref(db, `support_chats/${userId}`), { lastActivity: t, unreadAdmin: true });
+                input.value = '';
+            } catch(e) {
+                App.toast('Network rejection on dispatch.', 'error');
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+    };
+
+    // ==========================================
+    // GLOBAL ANNOUNCEMENT ENGINE
+    // ==========================================
+    window.Announcement = {
+        timer: null,
+        update: (data) => {
+            clearInterval(window.Announcement.timer);
+            const bar = document.getElementById('announcement-bar');
+            const textEl = document.getElementById('announcement-text');
+            const timeEl = document.getElementById('announcement-timer');
+            
+            const tick = () => {
+                const now = Date.now();
+                if(!data || data.expiresAt <= now) {
+                    bar.classList.add('hidden');
+                    bar.classList.remove('flex');
+                    clearInterval(window.Announcement.timer);
+                    return;
+                }
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+                textEl.innerText = data.text;
+                const diff = Math.floor((data.expiresAt - now) / 1000);
+                const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+                const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                timeEl.innerText = `${h}:${m}:${s}`;
+            };
+            tick();
+            window.Announcement.timer = setInterval(tick, 1000);
+        },
+        hide: () => {
+            const bar = document.getElementById('announcement-bar');
+            if(bar) {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
+            clearInterval(window.Announcement.timer);
+        }
+    };
+
+    // ==========================================
+    // GLOBAL CONFIG LISTENER (Loads Immediately)
+    // ==========================================
+    const configRef = ref(db, 'config');
+    onValue(configRef, snap => {
+        if(snap.exists()) {
+            const c = snap.val();
+            window.globalConfig = c;
+            
+            const tabSwitcher = document.getElementById('tab-switcher-container');
+            const regTabBtn = document.getElementById('tab-register');
+            const formReg = document.getElementById('form-register');
+            const formLog = document.getElementById('form-login');
+
+            if(tabSwitcher && regTabBtn) {
+                if(c.adminRegistrationEnabled === false) {
+                    tabSwitcher.classList.add('hidden');
+                    formReg.classList.add('hidden');
+                    formLog.classList.remove('hidden');
+                } else {
+                    tabSwitcher.classList.remove('hidden');
+                }
+            }
+
+            if (window.AuthEngine && window.AuthEngine.currentActiveSession) {
+                if (c.adminLockdown && window.AuthEngine.currentActiveSession.role !== 'Superadmin') {
+                     window.Lockdown.engage();
+                } else {
+                     window.Lockdown.disengage();
+                }
+            }
+
+            if (c.announcement) {
+                window.Announcement.update(c.announcement);
+            } else {
+                window.Announcement.hide();
+            }
+        }
+    }, (err) => {
+        // Suppress permission errors specifically for the early public config check.
+    });
+
+    // ==========================================
+    // AUTHENTICATION AND ROLE ENGINE STATE
+    // ==========================================
+    window.AuthEngine = {
+      currentActiveSession: null,
+      switchTab: (tab) => {
+        const tLogin = document.getElementById('tab-login');
+        const tReg = document.getElementById('tab-register');
+        const fLogin = document.getElementById('form-login');
+        const fReg = document.getElementById('form-register');
+        
+        if (tab === 'login') {
+          tLogin.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-white bg-[#8b5cf6] shadow-md";
+          tReg.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white hover:bg-slate-800/50";
+          fLogin.classList.remove('hidden');
+          fReg.classList.add('hidden');
+        } else {
+          tReg.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-white bg-[#0ea5e9] shadow-md";
+          tLogin.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-400 hover:text-white hover:bg-slate-800/50";
+          fReg.classList.remove('hidden');
+          fLogin.classList.add('hidden');
+        }
+      },
+      handleLogin: async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-password').value;
+        const submitBtn = document.getElementById('btn-login-submit');
+
+        if (!email || !pass) return App.toast("Please fill in all security fields.", "warning");
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "VERIFYING BLOCKCHAIN HASH...";
+
+        const encoded = encodeEmail(email);
+        try {
+          const userSnap = await get(ref(db, `users/${encoded}`));
+          if (!userSnap.exists()) {
+            App.toast("Invalid database administrative credentials.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "AUTHENTICATE TERMINAL";
+            return;
+          }
+
+          const userData = userSnap.val();
+          if (userData.password !== pass) {
+            App.toast("Access code signature mismatch.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "AUTHENTICATE TERMINAL";
+            return;
+          }
+
+          if (userData.role === 'User') {
+            App.toast("Access restricted: Public profiles not allowed on Admin Engine.", "error");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "AUTHENTICATE TERMINAL";
+            return;
+          }
+
+          localStorage.setItem('gp_admin_session_key', encoded);
+          window.Security.log('AUTH', 'LOGIN_ATTEMPT', userData.name, `System Role ${userData.role} accessed terminal.`);
+          AuthEngine.evaluateRouteState(userData, encoded);
+        } catch (err) {
+          App.toast("Authentication Handshake failed.", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "AUTHENTICATE TERMINAL";
+        }
+      },
+      handleRegister: async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-password').value;
+        const role = document.getElementById('reg-role').value;
+        const submitBtn = document.getElementById('btn-reg-submit');
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "PROVISIONING PARAMS...";
+
+        const encoded = encodeEmail(email);
+        try {
+          const userSnap = await get(ref(db, `users/${encoded}`));
+          if (userSnap.exists()) {
+            App.toast("Identifier already mapped to production cluster.", "warning");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "SUBMIT APPLICATION PROTOCOL";
+            return;
+          }
+
+          const payload = {
+            name,
+            email,
+            password: pass,
+            role: role, 
+            status: "Active",
+            approvalStatus: "Pending", 
+            joinedAt: Date.now(),
+            lastLogin: Date.now()
+          };
+
+          await set(ref(db, `users/${encoded}`), payload);
+          App.toast("Application integrated into review queue successfully.", "success");
+          window.Security.log('AUTH', 'REGISTER_APPLY', name, `Applied for role position: ${role}`);
+          
+          localStorage.setItem('gp_admin_session_key', encoded);
+          AuthEngine.evaluateRouteState(payload, encoded);
+        } catch (err) {
+          App.toast("Registration pipeline validation rejection.", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "SUBMIT APPLICATION PROTOCOL";
+        }
+      },
+      handleReapply: async () => {
+        const currentSession = localStorage.getItem('gp_admin_session_key');
+        if(!currentSession) return;
+        const targetRole = document.getElementById('reapply-role').value;
+        
+        try {
+          await update(ref(db, `users/${currentSession}`), {
+            approvalStatus: 'Pending',
+            role: targetRole,
+            joinedAt: Date.now()
+          });
+          App.toast("Reapplication submitted to structural review queue.", "success");
+          setTimeout(() => window.location.reload(), 1000);
+        } catch(err) {
+          App.toast("Failed to process reapplication context.", "error");
+        }
+      },
+      evaluateRouteState: (userNode, encodedKey) => {
+        const authContainer = document.getElementById('auth-container');
+        const statusContainer = document.getElementById('status-container');
+        const appContainer = document.getElementById('app-container');
+        const pendingCard = document.getElementById('status-pending-card');
+        const rejectedCard = document.getElementById('status-rejected-card');
+
+        window.AuthEngine.currentActiveSession = { key: encodedKey, ...userNode };
+
+        update(ref(db, `users/${encodedKey}`), { lastLogin: Date.now() }).catch(()=>{});
+
+        if (userNode.approvalStatus === 'Pending') {
+          authContainer.classList.add('hidden');
+          appContainer.classList.add('hidden');
+          statusContainer.classList.remove('hidden');
+          statusContainer.classList.add('flex');
+          pendingCard.classList.remove('hidden');
+          rejectedCard.classList.add('hidden');
+        } else if (userNode.approvalStatus === 'Rejected') {
+          authContainer.classList.add('hidden');
+          appContainer.classList.add('hidden');
+          statusContainer.classList.remove('hidden');
+          statusContainer.classList.add('flex');
+          pendingCard.classList.add('hidden');
+          rejectedCard.classList.remove('hidden');
+        } else {
+          authContainer.classList.add('hidden');
+          statusContainer.classList.add('hidden');
+          statusContainer.classList.remove('flex');
+          
+          if (window.globalConfig && window.globalConfig.adminLockdown && userNode.role !== 'Superadmin') {
+              window.Lockdown.engage();
+          } else {
+              appContainer.classList.remove('hidden');
+          }
+
+          AuthEngine.applyRoleBasedAccess(userNode);
+          window.initializeAppDirectly();
+        }
+      },
+      applyRoleBasedAccess: (userNode) => {
+        document.getElementById('top-bar-name').innerText = userNode.name || "Administrator";
+        document.getElementById('top-bar-role').innerText = `${userNode.role} Matrix`;
+        
+        let avColor = '8b5cf6';
+        if(userNode.role === 'Superadmin') avColor = 'f59e0b';
+        if(userNode.role === 'Admin') avColor = '0ea5e9';
+        document.getElementById('top-bar-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userNode.name)}&background=${avColor}&color=fff&rounded=true&bold=true`;
+
+        const adminElements = document.querySelectorAll('.admin-only-ui');
+        const saElements = document.querySelectorAll('.superadmin-only-ui');
+        
+        if (userNode.role === 'Superadmin') {
+          adminElements.forEach(el => el.classList.remove('hidden'));
+          saElements.forEach(el => el.classList.remove('hidden'));
+        } else if (userNode.role === 'Admin') {
+          adminElements.forEach(el => el.classList.remove('hidden'));
+          saElements.forEach(el => el.classList.add('hidden'));
+        } else {
+          adminElements.forEach(el => el.classList.add('hidden'));
+          saElements.forEach(el => el.classList.add('hidden'));
+          
+          if(window.currentViewId &&['approvals', 'security', 'health', 'backup', 'config'].includes(window.currentViewId)){
+             App.showView('dashboard');
+          }
+        }
+      },
+      logout: () => {
+        localStorage.removeItem('gp_admin_session_key');
+        window.location.reload();
+      },
+      checkSessionIntegrity: async () => {
+        const sessionKey = localStorage.getItem('gp_admin_session_key');
+        if (!sessionKey) {
+          document.getElementById('auth-container').classList.remove('hidden');
+          document.getElementById('app-container').classList.add('hidden');
+          return;
+        }
+
+        try {
+          const snap = await get(ref(db, `users/${sessionKey}`));
+          if (snap.exists()) {
+            AuthEngine.evaluateRouteState(snap.val(), sessionKey);
+          } else {
+            AuthEngine.logout();
+          }
+        } catch(e) {
+          document.getElementById('auth-container').classList.remove('hidden');
+          document.getElementById('app-container').classList.add('hidden');
+        }
+      }
+    };
+
+    // ==========================================
+    // DB CONNECTION LISTENER
+    // ==========================================
+    const connectedRef = ref(db, ".info/connected");
+    onValue(connectedRef, (snap) => {
+      const isConnected = snap.val() === true;
+      const dashStatus = document.getElementById('dash-conn-status');
+      const dashBadge = document.getElementById('dash-realtime-badge');
+      if(dashStatus) {
+        if(isConnected) {
+          dashStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_5px_currentColor]"></span> Secured via WebSocket';
+          dashStatus.classList.replace('text-red-400', 'text-emerald-400');
+          if(dashBadge) { dashBadge.classList.replace('text-red-400', 'text-emerald-400'); dashBadge.classList.replace('bg-red-500/10', 'bg-emerald-500/10'); dashBadge.innerHTML = '<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Realtime Sync Active'; }
+        } else {
+          dashStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_currentColor]"></span> Polling connection...';
+          dashStatus.classList.replace('text-emerald-400', 'text-red-400');
+          if(dashBadge) { dashBadge.classList.replace('text-emerald-400', 'text-red-400'); dashBadge.classList.replace('bg-emerald-500/10', 'bg-red-500/10'); dashBadge.innerHTML = '<i class="fa-solid fa-circle-notch text-[8px] fa-spin"></i> Disconnected'; }
+        }
+      }
+    });
+
+    let activeDBListeners = [];
+    let activeChatListeners =[]; 
+
+    window.cachedUsers = {};
+    window.cachedContent = {};
+    window.cachedTickets = {};
+    window.currentPostIdForComments = null;
+    window.currentChatUserId = null;
+    window.currentViewId = 'dashboard';
+    
+    const INIT_TIME = Date.now();
+
+    function handleDBError(error) {
+      if (error.message && error.message.includes("Permission denied")) {
+        document.getElementById('db-rules-warning').classList.remove('hidden');
+        document.getElementById('db-rules-warning').classList.add('flex');
+      } else {
+        App.toast("Database Error: " + (error.message || 'Unknown'), "error");
+      }
+    }
+
+    // Chart Registry
+    window.ChartRegistry = {};
+    function renderChart(id, type, data, options) {
+      const ctx = document.getElementById(id);
+      if(!ctx) return;
+      if (window.ChartRegistry[id]) window.ChartRegistry[id].destroy();
+      window.ChartRegistry[id] = new Chart(ctx, { type, data, options });
+    }
+
+    // ================== ADVANCED BACKGROUND SCHEDULER SYSTEM ==================
+    window.Scheduler = {
+        worker: null,
+        init: () => {
+            const workerCode = `
+                let interval;
+                self.onmessage = function(e) {
+                    if (e.data.command === 'start') {
+                        interval = setInterval(() => {
+                            self.postMessage('EXECUTE_CRON_PULSE');
+                        }, 10000);
+                    } else if (e.data.command === 'stop') {
+                        clearInterval(interval);
+                    }
+                };
+            `;
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            window.Scheduler.worker = new Worker(URL.createObjectURL(blob));
+            
+            window.Scheduler.worker.onmessage = function(e) {
+                if (e.data === 'EXECUTE_CRON_PULSE') {
+                    window.Scheduler.processAutoPublish();
+                }
+            };
+            window.Scheduler.worker.postMessage({ command: 'start' });
+            setTimeout(window.Scheduler.processAutoPublish, 2000);
+        },
+        processAutoPublish: async () => {
+            if (!window.cachedContent) return;
+            const now = Date.now();
+            const updates = {};
+            let autoPublishedCount = 0;
+            
+            Object.entries(window.cachedContent).forEach(([id, c]) => {
+                if (c.status === 'Scheduled' && c.scheduledFor && c.scheduledFor <= now) {
+                    updates[`content/${id}/status`] = 'Published';
+                    updates[`content/${id}/publishedAt`] = now;
+                    updates[`content/${id}/scheduledFor`] = null; 
+                    autoPublishedCount++;
+                    window.Security.log('SYSTEM', 'AUTO_PUBLISH', 'Background Scheduler Engine', `Autonomous Execution: ${c.title}`);
+                }
+            });
+            
+            if (autoPublishedCount > 0) {
+                try {
+                    await update(ref(db, '/'), updates);
+                    App.toast(`Background Node Executed: ${autoPublishedCount} mathematical trigger(s) published live!`, 'success');
+                } catch(e) {
+                    console.error("Scheduler Write Rejection:", e);
+                }
+            }
+        }
+    };
+
+    // ================== NOTIFICATION SYSTEM ==================
+    window.Notifications = {
+       add: (log) => {
+           if(log.timestamp <= INIT_TIME) return; 
+           if(log.type === 'SUPPORT' || log.action === 'CREATE' || log.type === 'AUTH' || log.action === 'REGISTER_APPLY') {
+               App.toast(`Activity Log Matrix: ${log.action} - ${log.identity}`, 'info');
+           }
+       },
+       initListener: () => {
+           const q = query(ref(db, 'audit'), limitToLast(1));
+           onChildAdded(q, (snapshot) => {
+               if(snapshot.exists()) Notifications.add(snapshot.val());
+           });
+       }
+    };
+
+    // ================== USERS MODULE ==================
+    window.Users = {
+      load: async () => {
+        // LOCAL FIRST: IndexedDB Load
+        const cached = await IDB.get('users');
+        if(cached && Object.keys(cached).length > 0) {
+            window.cachedUsers = cached;
+            requestAnimationFrame(() => { 
+                if(window.Users) window.Users.filter(); 
+                if(window.Users) window.Users.renderApprovalsQueue();
+                if(window.Support) window.Support.renderUserList(); 
+            });
+        }
+
+        // FIREBASE SYNC: Overwrite and update
+        const q = query(ref(db, 'users')); 
+        const unsub = onValue(q, snapshot => {
+          const tbody = document.getElementById('usersTable');
+          if(!snapshot.exists()) { 
+            if(tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-500 font-bold text-sm">No user directory available.</td></tr>'; 
+            const statUsers = document.getElementById('stat-users');
+            if(statUsers) statUsers.innerText='0'; 
+            window.cachedUsers={}; 
+            IDB.set('users', {}); 
+            if(window.Support) window.Support.renderUserList(); 
+            return; 
+          }
+          
+          const val = snapshot.val();
+          window.cachedUsers = val;
+          IDB.set('users', val); 
+          requestAnimationFrame(() => { 
+              if(window.Users) window.Users.filter(); 
+              if(window.Users) window.Users.renderApprovalsQueue();
+              if(window.Support) window.Support.renderUserList(); 
+          }); 
+        }, handleDBError);
+        activeDBListeners.push(unsub);
+      },
+      filter: () => {
+         const searchEl = document.getElementById('userSearch');
+         const roleFilterEl = document.getElementById('userRoleFilter');
+         const search = searchEl ? searchEl.value.toLowerCase() : '';
+         const roleFilter = roleFilterEl ? roleFilterEl.value : '';
+         let html = ''; let count = 0;
+         
+         const activeSess = window.AuthEngine.currentActiveSession;
+         if(!activeSess) return;
+         const myRoleLvl = window.ROLE_LEVELS[activeSess.role] || 1;
+
+         Object.entries(window.cachedUsers).forEach(([id, u]) => {
+            const emailDisp = decodeEmail(id);
+            const nameSearch = (u.name || '').toLowerCase();
+            const role = u.role || 'User';
+
+            if(search && !nameSearch.includes(search) && !emailDisp.toLowerCase().includes(search)) return;
+            if(roleFilter && role !== roleFilter) return;
+
+            count++;
+            const dateStr = new Date(u.lastLogin || u.joinedAt || Date.now()).toLocaleDateString();
+            
+            let roleColor = 'text-slate-300 bg-slate-800 border-slate-700';
+            if(role === 'Superadmin') roleColor = 'text-amber-400 bg-amber-400/10 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]';
+            if(role === 'Admin') roleColor = 'text-[#0ea5e9] bg-[#0ea5e9]/10 border-[#0ea5e9]/30';
+            if(role === 'Moderator') roleColor = 'text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30';
+            
+            const statusColor = u.status === 'Suspended' ? 'text-red-400 bg-red-400/10 border-red-500/30' : 'text-emerald-400 bg-emerald-400/10 border-emerald-500/30';
+            const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
+            
+            const targetRoleLvl = window.ROLE_LEVELS[role] || 1;
+            const canEdit = myRoleLvl >= targetRoleLvl;
+
+            const actionButtons = canEdit ? `
+              <button onclick="Users.openModal('${id}')" title="Edit Profile" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-[#8b5cf6] w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="Users.delete('${id}')" title="Terminate" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-red-600 w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-trash"></i></button>
+            ` : `<span class="text-[10px] font-bold text-slate-500 flex items-center bg-slate-900/80 px-2 py-1 rounded border border-slate-800 shadow-inner whitespace-nowrap"><i class="fa-solid fa-lock mr-1.5"></i>Protected</span>`;
+            
+            html += `
+              <tr class="hover:bg-slate-800/40 transition-colors border-b border-slate-800/50 group">
+                <td class="p-3 pl-6"><input type="checkbox" class="user-checkbox rounded border-slate-600 bg-slate-900 cursor-pointer w-4 h-4 accent-[#8b5cf6] focus:ring-[#8b5cf6]" value="${id}"></td>
+                <td class="p-3 flex items-center gap-4 py-4">
+                  <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[15px] font-black text-white shadow-inner">${initial}</div>
+                  <div><div class="text-white font-bold text-[14px] group-hover:text-[#8b5cf6] transition-colors">${u.name || 'Unknown User'}</div><div class="text-[12px] font-medium text-slate-500">${emailDisp}</div></div>
+                </td>
+                <td class="p-3"><span class="px-3 py-1.5 rounded-lg border text-[11px] font-bold ${roleColor}">${role}</span></td>
+                <td class="p-3"><span class="px-3 py-1.5 rounded-lg border text-[11px] font-bold flex items-center w-fit gap-2 ${statusColor}"><i class="fa-solid fa-circle text-[7px] shadow-sm"></i>${u.status || 'Active'}</span></td>
+                <td class="p-3 text-slate-400 text-[12px] font-semibold">${dateStr}</td>
+                <td class="p-3 text-right pr-6 flex justify-end gap-2 items-center">
+                  ${actionButtons}
+                </td>
+              </tr>
+            `;
+         });
+         const tBody = document.getElementById('usersTable');
+         if(tBody) tBody.innerHTML = html || '<tr><td colspan="6" class="text-center p-8 text-slate-500 font-bold text-sm">No queries match active parameters.</td></tr>';
+         
+         const sbUserCount = document.getElementById('sb-user-count');
+         if(sbUserCount) sbUserCount.innerText = count;
+         
+         const statUsers = document.getElementById('stat-users');
+         if(statUsers) statUsers.innerText = count.toLocaleString();
+      },
+      renderApprovalsQueue: () => {
+        const approvalsContainer = document.getElementById('approvalsTable');
+        if (!approvalsContainer) return;
+
+        let html = '';
+        let pendingCount = 0;
+        const activeSess = window.AuthEngine.currentActiveSession;
+        if(!activeSess) return;
+        const myRoleLvl = window.ROLE_LEVELS[activeSess.role] || 1;
+
+        Object.entries(window.cachedUsers || {}).forEach(([id, u]) => {
+          if (u.role !== 'User' && u.approvalStatus === 'Pending') {
+            
+            const requestedRoleLvl = window.ROLE_LEVELS[u.role] || 1;
+            if(requestedRoleLvl > myRoleLvl) return;
+
+            pendingCount++;
+            const joinedTime = new Date(u.joinedAt || Date.now()).toLocaleString();
+            html += `
+              <tr class="hover:bg-slate-800/40 transition-colors border-b border-slate-800/50">
+                <td class="p-4 pl-6">
+                  <div class="text-white font-extrabold text-sm">${u.name || 'Anonymous Applicant'}</div>
+                  <div class="text-xs text-slate-500">${decodeEmail(id)}</div>
+                </td>
+                <td class="p-4"><span class="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#8b5cf6]/10 text-[#a78bfa] border border-[#8b5cf6]/20">${u.role}</span></td>
+                <td class="p-4"><span class="text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2 w-fit"><i class="fa-solid fa-hourglass-start text-[10px] animate-spin"></i> Pending Verify</span></td>
+                <td class="p-4 text-xs font-mono text-slate-400">${joinedTime}</td>
+                <td class="p-4 text-right pr-6 flex justify-end gap-2">
+                  <button onclick="Users.executeApproval('${id}', 'Approved')" class="btn px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-emerald-600/20 border border-emerald-500/30 transition-all"><i class="fa-solid fa-check mr-1.5"></i> Approve</button>
+                  <button onclick="Users.executeApproval('${id}', 'Rejected')" class="btn px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-red-600/20 border border-red-500/30 transition-all"><i class="fa-solid fa-xmark mr-1.5"></i> Decline</button>
+                </td>
+              </tr>
+            `;
+          }
+        });
+
+        approvalsContainer.innerHTML = html || '<tr><td colspan="5" class="text-center p-10 text-slate-500 font-bold text-sm bg-slate-900/20"><i class="fa-solid fa-shield-check text-3xl mb-3 block text-slate-700"></i> Administrative clearance queue is currently pristine.</td></tr>';
+        
+        const countBadge = document.getElementById('sb-approval-count');
+        if(countBadge) {
+          countBadge.innerText = pendingCount;
+          if(pendingCount > 0) countBadge.classList.remove('hidden');
+          else countBadge.classList.add('hidden');
+        }
+      },
+      executeApproval: async (encodedId, nextState) => {
+        try {
+          await update(ref(db, `users/${encodedId}`), { approvalStatus: nextState });
+          App.toast(`Applicant state explicitly shifted to ${nextState}.`, "success");
+          window.Security.log('SYSTEM', `APPROVAL_${nextState.toUpperCase()}`, 'Admin', `Target Account Context ID: ${decodeEmail(encodedId)}`);
+        } catch (err) {
+          App.toast("Failed to transmit structural decision code.", "error");
+        }
+      },
+      openModal: (id = null) => {
+        const activeSess = window.AuthEngine.currentActiveSession;
+        if(!activeSess) return;
+        const myRoleLvl = window.ROLE_LEVELS[activeSess.role] || 1;
+        const roleSelect = document.getElementById('userRole');
+
+        Array.from(roleSelect.options).forEach(opt => {
+            const optLvl = window.ROLE_LEVELS[opt.value] || 1;
+            if (optLvl > myRoleLvl) {
+                opt.disabled = true;
+                opt.hidden = true;
+            } else {
+                opt.disabled = false;
+                opt.hidden = false;
+            }
+        });
+
+        document.getElementById('userId').value = id || '';
+        const emailInput = document.getElementById('userEmail');
+        
+        if (id && window.cachedUsers[id]) {
+            const u = window.cachedUsers[id];
+            
+            const targetLvl = window.ROLE_LEVELS[u.role] || 1;
+            if (targetLvl > myRoleLvl) {
+                App.toast("System Restriction: Cannot modify users with superior privileges.", "error");
+                return; 
+            }
+
+            document.getElementById('userModalTitle').innerHTML = '<i class="fa-solid fa-user-shield text-[#8b5cf6] mr-3"></i> Edit Account Credentials';
+            emailInput.value = u.email || decodeEmail(id);
+            emailInput.readOnly = true; emailInput.classList.add('opacity-40', 'cursor-not-allowed');
+            
+            document.getElementById('userName').value = u.name || '';
+            document.getElementById('userPassword').value = u.password || '';
+            roleSelect.value = u.role || 'User';
+            document.getElementById('userStatus').value = u.status || 'Active';
+            document.getElementById('userApprovalStatus').value = u.approvalStatus || 'Approved';
+        } else {
+            document.getElementById('userModalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-[#8b5cf6] mr-3"></i> Provision New Identity';
+            emailInput.value = ''; emailInput.readOnly = false; emailInput.classList.remove('opacity-40', 'cursor-not-allowed');
+            document.getElementById('userName').value = '';
+            document.getElementById('userPassword').value = '';
+            roleSelect.value = 'User';
+            document.getElementById('userStatus').value = 'Active';
+            document.getElementById('userApprovalStatus').value = 'Approved';
+        }
+        
+        document.getElementById('modal-user').classList.remove('hidden'); document.getElementById('modal-user').classList.add('flex');
+      },
+      save: async () => {
+        const btn = document.getElementById('btnSaveUser');
+        const ogText = btn.innerHTML;
+        
+        const idRaw = document.getElementById('userId').value;
+        const email = document.getElementById('userEmail').value.trim();
+        const name = document.getElementById('userName').value.trim();
+        const password = document.getElementById('userPassword').value;
+        const role = document.getElementById('userRole').value;
+        const status = document.getElementById('userStatus').value;
+        const appStatus = document.getElementById('userApprovalStatus').value;
+
+        const activeSess = window.AuthEngine.currentActiveSession;
+        if(!activeSess) return;
+        const myRoleLvl = window.ROLE_LEVELS[activeSess.role] || 1;
+        const targetRoleLvl = window.ROLE_LEVELS[role] || 1;
+        
+        if (targetRoleLvl > myRoleLvl) {
+            return App.toast("Security Overruled: You cannot delegate roles superior to your own context.", "error");
+        }
+
+        if(!email || !name || !password) return App.toast('Absolute validation failure: Missing inputs.', 'error');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Writing DB...';
+
+        const dbId = idRaw || encodeEmail(email);
+        try {
+            const updates = { name, email, password, role, status, approvalStatus: appStatus };
+            if(!idRaw) updates.joinedAt = Date.now();
+            await update(ref(db, `users/${dbId}`), updates);
+            document.getElementById('modal-user').classList.add('hidden');
+            App.toast(`Identity ${idRaw ? 'updated' : 'provisioned'} successfully.`, 'success');
+            window.Security.log('USER', idRaw ? 'UPDATE_ROLE_STATUS' : 'CREATE', 'Admin', `Target Identity: ${email}`);
+        } catch(e) { 
+            handleDBError(e); 
+        } finally {
+            if(btn) { btn.disabled = false; btn.innerHTML = ogText; }
+        }
+      },
+      delete: async (id) => { 
+        const u = window.cachedUsers[id];
+        const activeSess = window.AuthEngine.currentActiveSession;
+        if(!activeSess) return;
+        const myRoleLvl = window.ROLE_LEVELS[activeSess.role] || 1;
+        const targetLvl = window.ROLE_LEVELS[u.role] || 1;
+        if(targetLvl > myRoleLvl) return App.toast('System Reject: Cannot purge records of superior profiles.', 'error');
+
+        if(confirm('CRITICAL ACTION: Permanently wipe this user record? This will execute physical deletion.')) {
+          try { await remove(ref(db, `users/${id}`)); App.toast('User mathematically deleted from DB.', 'success'); window.Security.log('USER', 'DELETE', 'Admin', 'Deleted User Key: '+id); } 
+          catch(e) { handleDBError(e); }
+        }
+      },
+      toggleAll: (checkbox) => { document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = checkbox.checked); },
+      bulkDelete: async () => {
+        const selected = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+        if(selected.length === 0) return App.toast('Queue empty. Select target nodes first.', 'warning');
+        
+        const activeSess = window.AuthEngine.currentActiveSession;
+        if(!activeSess) return;
+        const myRoleLvl = window.ROLE_LEVELS[activeSess.role] || 1;
+        
+        for (let id of selected) {
+            const u = window.cachedUsers[id];
+            if (u && (window.ROLE_LEVELS[u.role] || 1) > myRoleLvl) {
+                return App.toast("Batch Rejected: Selection contains hierarchy superior to your clearance.", "error");
+            }
+        }
+
+        if(confirm(`CRITICAL BATCH: Wipe ${selected.length} records simultaneously?`)) {
+          try {
+            await Promise.all(selected.map(id => remove(ref(db, `users/${id}`))));
+            const chkAll = document.getElementById('checkAll');
+            if(chkAll) chkAll.checked = false;
+            App.toast(`Successfully detached ${selected.length} users.`, 'success');
+            window.Security.log('USER', 'BULK_DELETE', 'Admin', `Wiped ${selected.length} user nodes.`);
+          } catch(e) { handleDBError(e); }
+        }
+      }
+    };
+
+    // ================== ABOUT PAGE EDITOR MODULE ==================
+    window.About = {
+        load: async () => {
+            const cached = await IDB.get('about');
+            if(cached) {
+                About.renderInputs(cached);
+            }
+
+            const refAbout = ref(db, 'about');
+            const unsub = onValue(refAbout, snap => {
+                const data = snap.exists() ? snap.val() : {
+                    profileImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200",
+                    title: "About Minister Michael", subtitle: "Prophet, Teacher, and Watchman",
+                    bodyHTML: "<p>Minister Michael is a prophetic voice raised by God for such a time as this.</p>",
+                    quoteText: "We do not prophecy for fame...", quoteAuthor: "Minister Michael"
+                };
+                IDB.set('about', data);
+                requestAnimationFrame(() => About.renderInputs(data));
+            }, handleDBError);
+            activeDBListeners.push(unsub);
+        },
+        renderInputs: (data) => {
+            const imgPrev = document.getElementById('aboutImgPreview');
+            const imgB64 = document.getElementById('aboutImgBase64');
+            const titEl = document.getElementById('aboutTitle');
+            const subEl = document.getElementById('aboutSubtitle');
+            const qTxt = document.getElementById('aboutQuoteText');
+            const qAuth = document.getElementById('aboutQuoteAuthor');
+            const bodyEl = document.getElementById('aboutBodyHTML');
+
+            if(imgPrev) imgPrev.src = data.profileImg || '';
+            if(imgB64) imgB64.value = data.profileImg || '';
+            if(titEl) titEl.value = data.title || '';
+            if(subEl) subEl.value = data.subtitle || '';
+            if(qTxt) qTxt.value = data.quoteText || '';
+            if(qAuth) qAuth.value = data.quoteAuthor || '';
+            if(bodyEl) bodyEl.value = data.bodyHTML || '';
+        },
+        handleImageUpload: (event, previewId, base64Id) => {
+             const file = event.target.files[0];
+             if(!file) return;
+             if(file.size > 2 * 1024 * 1024) { App.toast('Media Rejected: Max constraint 2MB.', 'warning'); return; }
+
+             const reader = new FileReader();
+             reader.onload = (e) => {
+                 const img = new Image();
+                 img.src = e.target.result;
+                 img.onload = () => {
+                     const canvas = document.createElement('canvas');
+                     const MAX_WIDTH = 800; 
+                     let width = img.width; let height = img.height;
+                     if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                     canvas.width = width; canvas.height = height;
+                     const ctx = canvas.getContext('2d');
+                     ctx.drawImage(img, 0, 0, width, height);
+                     const compressed = canvas.toDataURL('image/jpeg', 0.85);
+
+                     const prevEl = document.getElementById(previewId);
+                     if(prevEl) { prevEl.src = compressed; prevEl.classList.remove('hidden'); }
+                     const b64El = document.getElementById(base64Id);
+                     if(b64El) b64El.value = compressed;
+                     
+                     App.toast('Image successfully processed.', 'success');
+                 }
+             };
+             reader.readAsDataURL(file);
+        },
+        injectImageToBody: (event) => {
+             const file = event.target.files[0];
+             if(!file) return;
+             if(file.size > 3 * 1024 * 1024) { App.toast('Payload too large. Max 3MB for inline body images.', 'warning'); return; }
+
+             App.toast('Processing rich-text image payload...', 'loading');
+             
+             const reader = new FileReader();
+             reader.onload = (e) => {
+                 const img = new Image();
+                 img.src = e.target.result;
+                 img.onload = () => {
+                     const canvas = document.createElement('canvas');
+                     const MAX_WIDTH = 1000; 
+                     let width = img.width; let height = img.height;
+                     if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                     canvas.width = width; canvas.height = height;
+                     const ctx = canvas.getContext('2d');
+                     ctx.drawImage(img, 0, 0, width, height);
+                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+                     const textArea = document.getElementById('aboutBodyHTML');
+                     const startPos = textArea.selectionStart;
+                     const endPos = textArea.selectionEnd;
+                     
+                     const imgTag = `\n<img src="${compressedBase64}" alt="Editorial Content" class="embedded-content-img" />\n`;
+                     
+                     textArea.value = textArea.value.substring(0, startPos) + imgTag + textArea.value.substring(endPos, textArea.value.length);
+                     App.toast('Inline image mathematically injected at cursor.', 'success');
+                 }
+             };
+             reader.readAsDataURL(file);
+        },
+        save: async () => {
+            const btn = document.getElementById('aboutSaveBtn');
+            const ogText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Writing DB...';
+            
+            try {
+                const payload = {
+                    profileImg: document.getElementById('aboutImgBase64').value,
+                    title: document.getElementById('aboutTitle').value.trim(),
+                    subtitle: document.getElementById('aboutSubtitle').value.trim(),
+                    quoteText: document.getElementById('aboutQuoteText').value.trim(),
+                    quoteAuthor: document.getElementById('aboutQuoteAuthor').value.trim(),
+                    bodyHTML: document.getElementById('aboutBodyHTML').value.trim()
+                };
+                
+                await set(ref(db, 'about'), payload);
+                App.toast('Public Profile Database State Overwritten.', 'success');
+                window.Security.log('CONTENT', 'UPDATE_ABOUT', 'Admin', 'Reconfigured System About Page Context');
+            } catch(e) {
+                handleDBError(e);
+            } finally {
+                if(btn) { btn.disabled = false; btn.innerHTML = ogText; }
+            }
+        }
+    };
+
+    // ================== CONTENT MODULE ==================
+    window.Content = {
+      load: async () => {
+        const cached = await IDB.get('content');
+        if(cached) {
+            window.cachedContent = cached;
+            requestAnimationFrame(() => { Content.renderTable(); window.Analytics.render(); });
+        }
+
+        const q = query(ref(db, 'content'));
+        const unsub = onValue(q, snapshot => {
+          const tbody = document.getElementById('contentTable');
+          if(!snapshot.exists()) { 
+            if(tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-500 font-bold text-sm">No payload repositories exist.</td></tr>'; 
+            const statArt = document.getElementById('stat-articles');
+            if(statArt) statArt.innerText='0'; 
+            window.cachedContent = {}; 
+            IDB.set('content', {}); return; 
+          }
+          
+          const val = snapshot.val();
+          window.cachedContent = val;
+          IDB.set('content', val);
+          requestAnimationFrame(() => { Content.renderTable(); window.Analytics.render(); });
+        }, handleDBError);
+        activeDBListeners.push(unsub);
+      },
+      renderTable: () => {
+          const tbody = document.getElementById('contentTable');
+          if(!tbody) return;
+
+          let html = ''; let count = 0; let totEng = 0;
+          const now = Date.now();
+
+          Object.entries(window.cachedContent).reverse().forEach(([id, c]) => {
+            if(c.status === 'Scheduled' && c.scheduledFor && c.scheduledFor <= now) {
+                c.status = 'Published'; 
+            }
+            if(c.status === 'Published') count++;
+            
+            const v = c.views || 0; 
+            const l = c.likes || 0; 
+            const s = c.shares || 0;
+            const cmtCount = c.comments ? Object.keys(c.comments).length : 0;
+            totEng += (l + s + cmtCount);
+
+            const dateStr = new Date(c.updated || Date.now()).toLocaleDateString();
+            
+            let statC = 'text-amber-400 bg-amber-400/10 border-amber-500/30';
+            if (c.status === 'Published') statC = 'text-emerald-400 bg-emerald-400/10 border-emerald-500/30';
+            if (c.status === 'Scheduled') statC = 'text-blue-400 bg-blue-400/10 border-blue-500/30';
+
+            const pinIcon = c.pinned ? '<i class="fa-solid fa-thumbtack text-[#8b5cf6] mr-2 drop-shadow-md" title="Pinned"></i>' : '';
+            const thumb = c.image ? `<img src="${c.image}" class="w-12 h-12 rounded-xl object-cover border border-slate-700 shadow-md shrink-0">` : `<div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 shrink-0 shadow-inner"><i class="fa-regular fa-image"></i></div>`;
+            
+            html += `
+              <tr class="hover:bg-slate-800/40 transition-colors border-b border-slate-800/50 group">
+                <td class="p-3 pl-6 flex items-center gap-4 py-4">
+                  ${thumb}
+                  <div><div class="text-white font-bold text-[14px] flex items-center group-hover:text-[#0ea5e9] transition-colors">${pinIcon}${c.title || 'Untitled Vector'}</div><div class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">Node: ${id.slice(-8)}</div></div>
+                </td>
+                <td class="p-3 text-slate-300 text-[12px] font-bold">${c.category || 'General'}</td>
+                <td class="p-3"><span class="px-3 py-1.5 rounded-lg border text-[11px] font-bold ${statC} whitespace-nowrap">${c.status || 'Draft'}</span></td>
+                <td class="p-3"><div class="text-[12px] text-slate-300 font-bold flex items-center gap-3 bg-slate-900/50 w-fit px-3 py-1.5 rounded-lg border border-slate-800">
+                  <span title="Views" class="flex items-center gap-1.5"><i class="fa-solid fa-eye text-[#0ea5e9]"></i>${v}</span>
+                  <span title="Likes" class="flex items-center gap-1.5"><i class="fa-solid fa-heart text-red-500"></i>${l}</span>
+                  <span title="Shares" class="flex items-center gap-1.5"><i class="fa-solid fa-share text-[#10b981]"></i>${s}</span>
+                  <span title="Comments" class="flex items-center gap-1.5"><i class="fa-solid fa-comment text-[#8b5cf6]"></i>${cmtCount}</span>
+                </div></td>
+                <td class="p-3 text-slate-400 text-[12px] font-semibold">${dateStr}</td>
+                <td class="p-3 text-right pr-6 flex justify-end gap-2 items-center">
+                  <button onclick="Content.openModal('${id}')" title="Reconfigure" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-[#8b5cf6] w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-pen"></i></button>
+                  <button onclick="Content.manageComments('${id}')" title="Moderate Thread" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-blue-500 w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-comments"></i></button>
+                  <button onclick="Content.delete('${id}')" title="Purge Post" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-red-600 w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-trash"></i></button>
+                </td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = html;
+          
+          const statArt = document.getElementById('stat-articles');
+          const statEng = document.getElementById('stat-engagement');
+          if(statArt) statArt.innerText = count.toLocaleString();
+          if(statEng) statEng.innerText = totEng.toLocaleString();
+      },
+      handleImageUpload: (event) => {
+         const file = event.target.files[0];
+         if(!file) return;
+         if(file.size > 2 * 1024 * 1024) { App.toast('Compression Failure: File exceeds 2MB constraint.', 'warning'); return; }
+
+         const reader = new FileReader();
+         reader.onload = (e) => {
+             const img = new Image();
+             img.src = e.target.result;
+             img.onload = () => {
+                 const canvas = document.createElement('canvas');
+                 const MAX_WIDTH = 800;
+                 let width = img.width; let height = img.height;
+                 if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                 canvas.width = width; canvas.height = height;
+                 const ctx = canvas.getContext('2d');
+                 ctx.drawImage(img, 0, 0, width, height);
+                 const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+                 const prev = document.getElementById('contentImagePreview');
+                 const b64 = document.getElementById('contentImageBase64');
+                 if(prev) { prev.src = compressedBase64; prev.classList.remove('hidden'); }
+                 if(b64) b64.value = compressedBase64;
+             }
+         };
+         reader.readAsDataURL(file);
+      },
+      toggleScheduleInput: () => {
+          const statEl = document.getElementById('contentStatus');
+          const container = document.getElementById('scheduleContainer');
+          if(statEl && container) {
+              if(statEl.value === 'Scheduled') {
+                  container.classList.remove('hidden');
+              } else {
+                  container.classList.add('hidden');
+              }
+          }
+      },
+      openModal: (id = null) => {
+        document.getElementById('contentId').value = id || '';
+        const imgFile = document.getElementById('contentImageFile');
+        if(imgFile) imgFile.value = '';
+        
+        const prev = document.getElementById('contentImagePreview');
+        const b64 = document.getElementById('contentImageBase64');
+
+        if(id && window.cachedContent[id]) {
+            const c = window.cachedContent[id];
+            document.getElementById('contentModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-[#8b5cf6] mr-3"></i> Alter Data Vector';
+            document.getElementById('contentTitle').value = c.title || '';
+            
+            if(c.image && prev && b64) { prev.src = c.image; prev.classList.remove('hidden'); b64.value = c.image; } 
+            else if (prev && b64) { prev.src = ''; prev.classList.add('hidden'); b64.value = ''; }
+
+            document.getElementById('contentBody').value = c.body || '';
+            document.getElementById('contentCategory').value = c.category || 'Prophecy';
+            document.getElementById('contentStatus').value = c.status || 'Published';
+            document.getElementById('contentLikes').value = c.likes || 0;
+            document.getElementById('contentShares').value = c.shares || 0;
+            document.getElementById('contentPinned').checked = !!c.pinned;
+
+            const schedInput = document.getElementById('contentScheduledFor');
+            if (c.status === 'Scheduled' && c.scheduledFor && schedInput) {
+                const date = new Date(c.scheduledFor);
+                date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+                schedInput.value = date.toISOString().slice(0, 16);
+            } else if (schedInput) {
+                schedInput.value = '';
+            }
+
+        } else {
+            document.getElementById('contentModalTitle').innerHTML = '<i class="fa-solid fa-pen-nib text-[#0ea5e9] mr-3"></i> Instantiate New Payload';
+            document.getElementById('contentTitle').value = '';
+            if(prev && b64) { prev.src = ''; prev.classList.add('hidden'); b64.value = ''; }
+            document.getElementById('contentBody').value = '';
+            document.getElementById('contentCategory').value = 'Prophecy';
+            document.getElementById('contentStatus').value = 'Published';
+            document.getElementById('contentLikes').value = 0;
+            document.getElementById('contentShares').value = 0;
+            document.getElementById('contentPinned').checked = false;
+            const schedInput = document.getElementById('contentScheduledFor');
+            if(schedInput) schedInput.value = '';
+        }
+        
+        Content.toggleScheduleInput();
+        document.getElementById('modal-content').classList.remove('hidden'); document.getElementById('modal-content').classList.add('flex');
+      },
+      save: async () => {
+        const btn = document.getElementById('btnSaveContent');
+        const ogText = btn.innerHTML;
+        
+        const id = document.getElementById('contentId').value;
+        const title = document.getElementById('contentTitle').value.trim();
+        const image = document.getElementById('contentImageBase64').value;
+        const body = document.getElementById('contentBody').value.trim();
+        const category = document.getElementById('contentCategory').value.trim();
+        const status = document.getElementById('contentStatus').value;
+        const likes = parseInt(document.getElementById('contentLikes').value) || 0;
+        const shares = parseInt(document.getElementById('contentShares').value) || 0;
+        const pinned = document.getElementById('contentPinned').checked;
+
+        let scheduledFor = null;
+        if (status === 'Scheduled') {
+            const dtRaw = document.getElementById('contentScheduledFor').value;
+            if (!dtRaw) return App.toast('Schedule time constraint is required to initialize scheduled trigger.', 'error');
+            scheduledFor = new Date(dtRaw).getTime();
+            if (scheduledFor < Date.now()) return App.toast('Cannot schedule logic chronologically backward. Pick future time.', 'error');
+        }
+
+        if(!title) return App.toast('Primary Identifier (Title) is strictly required.', 'error');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
+
+        const payload = { title, image, body, category, status, likes, shares, pinned, updated: Date.now() };
+        payload.scheduledFor = scheduledFor || null;
+
+        try {
+            if(id) {
+                await update(ref(db, `content/${id}`), payload);
+                App.toast('Post state modified correctly.', 'success');
+                window.Security.log('CONTENT', 'UPDATE', 'Admin', 'Reconfigured Post Title: '+title);
+            } else {
+                payload.views = 0;
+                await push(ref(db, 'content'), payload);
+                App.toast('Payload deployed to production architecture.', 'success');
+                window.Security.log('CONTENT', 'CREATE', 'Admin', 'Created New Entity: '+title);
+            }
+            document.getElementById('modal-content').classList.add('hidden');
+        } catch(e) { 
+            handleDBError(e); 
+        } finally {
+            if(btn) { btn.disabled = false; btn.innerHTML = ogText; }
+        }
+      },
+      delete: async (id) => { 
+        if(confirm('CRITICAL ACTION: Permanently wipe this post from memory arrays?')) {
+          try { await remove(ref(db, `content/${id}`)); App.toast('Node eradicated successfully.', 'success'); window.Security.log('CONTENT', 'DELETE', 'Admin', 'Destructive Wipe Post ID: '+id); } catch(e) { handleDBError(e); }
+        }
+      },
+      manageComments: (id) => {
+        window.currentPostIdForComments = id;
+        const post = window.cachedContent[id];
+        const container = document.getElementById('commentsList');
+        
+        if(!post || !post.comments) {
+            container.innerHTML = '<div class="bg-slate-900/50 rounded-2xl p-10 flex flex-col items-center justify-center border border-slate-800 shadow-inner"><i class="fa-solid fa-comment-slash text-4xl text-slate-700 mb-3 block"></i><span class="text-slate-400 font-bold text-[15px]">Zero traffic on this thread.</span></div>';
+        } else {
+            let html = '';
+            Object.entries(post.comments).forEach(([cId, cmt]) => {
+                const dateStr = new Date(cmt.date).toLocaleString();
+                html += `
+                <div class="bg-[#050a14] p-5 rounded-2xl border border-slate-800 shadow-md">
+                    <div class="flex justify-between items-start mb-4 border-b border-slate-800 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-sm border border-white/10" style="background: ${cmt.avatarColor||'#8b5cf6'}">${cmt.user.charAt(0)}</div>
+                            <div>
+                                <span class="font-black text-white text-sm block leading-tight tracking-wide">${cmt.user}</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${dateStr}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="Content.editComment('${cId}')" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-[#8b5cf6] w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="Content.deleteComment('${cId}')" class="btn text-slate-400 hover:text-white bg-slate-800 hover:bg-red-600 w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 shadow-sm"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
+                    </div>
+                    <div class="text-[14.5px] text-slate-300 font-medium leading-relaxed bg-slate-900/50 p-4 rounded-xl border border-slate-800/50 shadow-inner" style="word-break: break-word; white-space: pre-wrap;">${cmt.text}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        document.getElementById('modal-comments').classList.remove('hidden'); document.getElementById('modal-comments').classList.add('flex');
+      },
+      editComment: async (cId) => {
+         const postId = window.currentPostIdForComments;
+         const currentText = window.cachedContent[postId].comments[cId].text;
+         const newText = prompt("System Override: Edit Client Comment", currentText);
+         
+         if(newText !== null && newText.trim() !== "") {
+             try {
+                 await update(ref(db, `content/${postId}/comments/${cId}`), { text: newText.trim() });
+                 App.toast('State rewritten correctly.', 'success');
+                 Security.log('CONTENT', 'UPDATE_COMMENT', 'Admin', `Forced edit on comment ID ${cId}`);
+                 setTimeout(() => Content.manageComments(postId), 200);
+             } catch (e) { handleDBError(e); }
+         }
+      },
+      deleteComment: async (cId) => {
+         if(!confirm('O(1) Memory Wipe: Purge this user comment?')) return;
+         const postId = window.currentPostIdForComments;
+         try {
+             await remove(ref(db, `content/${postId}/comments/${cId}`));
+             App.toast('Node eliminated.', 'success');
+             Security.log('CONTENT', 'DELETE_COMMENT', 'Admin', `Wiped comment ID ${cId}`);
+             setTimeout(() => Content.manageComments(postId), 200);
+         } catch (e) { handleDBError(e); }
+      }
+    };
+
+    // ================== ADVANCED SUPPORT & CHAT MODULE ==================
+    window.Support = {
+      toggleSidebar: () => {
+         const sb = document.getElementById('supportUserSidebar');
+         if(sb) sb.classList.toggle('-translate-x-full');
+      },
+      loadTickets: async () => {
+         const cached = await IDB.get('tickets');
+         if(cached) {
+            window.cachedTickets = cached;
+            requestAnimationFrame(() => Support.renderUserList());
+         }
+
+         const q = query(ref(db, 'support_chats'));
+         onValue(q, snap => {
+             const data = snap.exists() ? snap.val() : {};
+             window.cachedTickets = data;
+             IDB.set('tickets', data);
+             requestAnimationFrame(() => Support.renderUserList());
+         }, handleDBError);
+      },
+      renderUserList: () => {
+         const searchEl = document.getElementById('supportSearch');
+         const search = searchEl ? searchEl.value.toLowerCase() : '';
+         const container = document.getElementById('supportUserList');
+         if(!container) return;
+
+         if(!window.cachedUsers || Object.keys(window.cachedUsers).length === 0) {
+             container.innerHTML = '<div class="p-10 flex flex-col items-center justify-center text-center"><i class="fa-solid fa-ghost text-4xl text-slate-700 mb-3 block"></i><span class="text-xs font-bold text-slate-500 uppercase tracking-widest">No Clients Registered</span></div>';
+             return;
+         }
+
+         let html = '';
+         let globalUnread = 0;
+
+         const usersArr = Object.entries(window.cachedUsers).map(([id, u]) => {
+             const chatData = window.cachedTickets[id];
+             u.lastActivity = chatData && chatData.lastActivity ? chatData.lastActivity : 0;
+             u.unreadAdmin = chatData && chatData.unreadAdmin ? true : false;
+             return {id, ...u};
+         }).sort((a, b) => b.lastActivity - a.lastActivity);
+
+         usersArr.forEach((u) => {
+            const emailDisp = decodeEmail(u.id);
+            if(search && !(u.name||'').toLowerCase().includes(search) && !emailDisp.toLowerCase().includes(search)) return;
+            
+            const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
+            const isActive = window.currentChatUserId === u.id ? 'active' : '';
+            const isUnread = u.unreadAdmin ? 'unread' : '';
+            if(u.unreadAdmin) globalUnread++;
+
+            html += `
+                <div class="p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-800/40 transition chat-user-item ${isActive} ${isUnread} group" onclick="Support.openChat('${u.id}')">
+                    <div class="w-12 h-12 rounded-full ${u.unreadAdmin ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] text-white' : 'bg-[#0a101f] border border-slate-700 text-slate-300'} flex items-center justify-center text-base font-black shrink-0 transition-all">${initial}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-white font-extrabold text-[14.5px] truncate flex justify-between items-center group-hover:text-primary transition-colors">
+                           <span>${u.name || 'Unknown'}</span>
+                           ${u.unreadAdmin ? '<span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm animate-pulse"></span>' : ''}
+                        </div>
+                        <div class="text-[12px] font-medium text-slate-500 truncate mt-0.5">${emailDisp}</div>
+                    </div>
+                </div>
+            `;
+         });
+         container.innerHTML = html;
+
+         const mainBadge = document.getElementById('sb-support-unread');
+         if(mainBadge) {
+            if(globalUnread > 0) mainBadge.classList.remove('hidden');
+            else mainBadge.classList.add('hidden');
+         }
+      },
+      filterUsers: () => Support.renderUserList(),
+      
+      openChat: async (userId) => {
+         window.currentChatUserId = userId;
+         
+         if(window.cachedTickets[userId] && window.cachedTickets[userId].unreadAdmin) {
+             await update(ref(db, `support_chats/${userId}`), { unreadAdmin: false });
+         }
+         Support.renderUserList(); 
+         
+         if(window.innerWidth < 768) { Support.toggleSidebar(); }
+         
+         const u = window.cachedUsers[userId];
+         document.getElementById('supportEmptyState').classList.add('hidden');
+         document.getElementById('supportChatHeader').classList.remove('hidden');
+         document.getElementById('supportMessages').classList.remove('hidden');
+         document.getElementById('supportInputArea').classList.remove('hidden');
+         document.getElementById('supportInputArea').classList.add('flex');
+         
+         document.getElementById('schatName').innerText = u.name || 'Unknown Protocol';
+         document.getElementById('schatAvatar').innerText = u.name ? u.name.charAt(0).toUpperCase() : '?';
+
+         activeChatListeners.forEach(unsub => { if(typeof unsub === 'function') unsub(); }); 
+         activeChatListeners =[];
+         
+         const container = document.getElementById('supportMessages');
+         container.innerHTML = ''; 
+         
+         const chatRef = ref(db, `support_chats/${userId}/messages`);
+         
+         activeChatListeners.push(onChildAdded(chatRef, snap => {
+             if(!snap.exists()) return;
+             const m = snap.val();
+             const div = document.createElement('div');
+             div.id = `adm-msg-${snap.key}`;
+             div.className = `flex flex-col mb-2 ${m.sender === 'admin' ? 'items-end' : 'items-start'}`;
+             div.innerHTML = `<div class="msg-bubble ${m.sender === 'admin' ? 'msg-admin' : 'msg-user'}">${m.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}<span class="msg-time">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+             
+             requestAnimationFrame(() => {
+                 container.appendChild(div);
+                 container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }); 
+             });
+         }));
+
+         activeChatListeners.push(onChildChanged(chatRef, snap => {
+             if(!snap.exists()) return;
+             const m = snap.val();
+             const div = document.getElementById(`adm-msg-${snap.key}`);
+             if(div) {
+                 requestAnimationFrame(() => {
+                     div.className = `flex flex-col mb-2 ${m.sender === 'admin' ? 'items-end' : 'items-start'}`;
+                     div.innerHTML = `<div class="msg-bubble ${m.sender === 'admin' ? 'msg-admin' : 'msg-user'}">${m.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}<span class="msg-time">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+                 });
+             }
+         }));
+
+         activeChatListeners.push(onChildRemoved(chatRef, snap => {
+             const div = document.getElementById(`adm-msg-${snap.key}`);
+             if(div) requestAnimationFrame(() => div.remove());
+         }));
+      },
+      sendMessage: async () => {
+         const input = document.getElementById('supportInput');
+         const btn = document.getElementById('supportSendBtn');
+         const text = input.value.trim();
+         const userId = window.currentChatUserId;
+
+         if (!text || !userId) return;
+         
+         input.disabled = true; btn.disabled = true;
+         const originalHTML = btn.innerHTML;
+         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i>';
+
+         try {
+             const t = Date.now();
+             await push(ref(db, `support_chats/${userId}/messages`), { text, sender: 'admin', timestamp: t });
+             await update(ref(db, `support_chats/${userId}`), { lastActivity: t, unreadUser: true });
+             
+             input.value = '';
+             window.Security.log('SUPPORT', 'REPLY', 'Admin', `Outbound package delivered to ${userId}`);
+         } catch(e) { 
+             App.toast('Network rejection on dispatch.', 'error'); 
+         } finally {
+             if(input) input.disabled = false;
+             if(btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+             if(input) input.focus();
+         }
+      }
+    };
+
+    // ================== SECURITY MODULE (Advanced Audit Log) ==================
+    window.Security = {
+      cachedLogs: [],
+      filteredLogs:[],
+      currentPage: 1,
+      itemsPerPage: 12, 
+      
+      log: async (type, action, identity, desc) => { 
+        try { 
+            const entry = { timestamp: Date.now(), type, action, identity, desc };
+            await push(ref(db, 'audit'), entry); 
+        } catch(e) { /* silent fail */ }
+      },
+      load: async () => {
+        const cached = await IDB.get('audit');
+        if (cached) {
+            Security.cachedLogs = Object.values(cached).sort((a,b) => b.timestamp - a.timestamp);
+            requestAnimationFrame(() => Security.applyFilter(true));
+        }
+
+        const q = query(ref(db, 'audit'));
+        const unsub = onValue(q, snapshot => {
+          if(!snapshot.exists()) {
+             const aFeed = document.getElementById('auditFeed');
+             const sList = document.getElementById('securityList');
+             if(aFeed) aFeed.innerHTML = '<tr><td colspan="3" class="text-center p-8 text-slate-500 font-bold text-xs">Waiting for telemetry arrays...</td></tr>';
+             if(sList) sList.innerHTML = '<tr><td colspan="5" class="text-center p-10 text-slate-500 font-bold text-sm">Central log frame empty.</td></tr>';
+             IDB.set('audit', {}); return;
+          }
+          
+          const val = snapshot.val();
+          IDB.set('audit', val);
+          Security.cachedLogs = Object.values(val).sort((a,b) => b.timestamp - a.timestamp);
+          
+          requestAnimationFrame(() => Security.applyFilter(true));
+        }, handleDBError);
+        activeDBListeners.push(unsub);
+      },
+      applyFilter: (skipPageReset = false) => {
+         const fEl = document.getElementById('auditFilter');
+         const sEl = document.getElementById('auditSearch');
+         const filter = fEl ? fEl.value : 'ALL';
+         const search = sEl ? sEl.value.toLowerCase() : '';
+         
+         Security.filteredLogs = Security.cachedLogs.filter(a => {
+             const matchType = filter === 'ALL' || a.type === filter;
+             const matchSearch = search === '' || (a.action||'').toLowerCase().includes(search) || (a.identity||'').toLowerCase().includes(search) || (a.desc||'').toLowerCase().includes(search);
+             return matchType && matchSearch;
+         });
+         
+         if(!skipPageReset) Security.currentPage = 1;
+
+         // Quick Feed render
+         let fHtml = '';
+         Security.cachedLogs.slice(0, 6).forEach((a) => {
+             const time = new Date(a.timestamp).toLocaleTimeString('en-US', {hour12: false});
+             let color = 'text-[#0ea5e9] bg-[#0ea5e9]/10 border-[#0ea5e9]/30';
+             if(a.type === 'AUTH') color = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
+             if(a.type === 'SECURITY' || a.action === 'LOCKDOWN') color = 'text-red-400 bg-red-400/10 border-red-400/30';
+             if(a.type === 'USER') color = 'text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30';
+             if(a.type === 'CONTENT') color = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
+             fHtml += `
+               <tr class="hover:bg-slate-800/30 transition-colors border-b border-slate-800/50 group" title="${(a.desc || '').replace(/"/g, '&quot;')}">
+                 <td class="p-3 pl-5 text-slate-400 font-mono text-[11px] font-semibold">${time}</td>
+                 <td class="p-3 text-white text-[11.5px] font-bold"><span class="px-2 py-0.5 rounded border ${color} mr-2 text-[9px] uppercase tracking-wider">${a.type}</span> ${a.action}</td>
+                 <td class="p-3 text-slate-300 text-[11px] truncate max-w-[130px] font-medium group-hover:text-white transition-colors" title="${(a.identity||'').replace(/"/g, '&quot;')}">${a.identity || 'System Runtime'}</td>
+               </tr>
+             `;
+         });
+         const elFeed = document.getElementById('auditFeed');
+         if(elFeed) elFeed.innerHTML = fHtml || '<tr><td colspan="3" class="text-center p-8 text-slate-500 font-bold text-xs">Waiting for telemetry arrays...</td></tr>';
+
+         Security.renderPage();
+      },
+      renderPage: () => {
+         const total = Security.filteredLogs.length;
+         const totalPages = Math.max(1, Math.ceil(total / Security.itemsPerPage));
+         if(Security.currentPage > totalPages) Security.currentPage = totalPages;
+         
+         const pageInfoEl = document.getElementById('auditPageInfo');
+         if(pageInfoEl) {
+           pageInfoEl.innerHTML = `Render Window: <span class="text-white">Page ${Security.currentPage} of ${totalPages}</span> <span class="text-slate-500 mx-2">|</span> Engine contains <span class="text-white">${total}</span> blocks`;
+         }
+         
+         const start = (Security.currentPage - 1) * Security.itemsPerPage;
+         const end = start + Security.itemsPerPage;
+         const pageData = Security.filteredLogs.slice(start, end);
+         
+         let lHtml = '';
+         pageData.forEach((a) => {
+            let color = 'text-[#0ea5e9] bg-[#0ea5e9]/10 border-[#0ea5e9]/30';
+            if(a.type === 'AUTH') color = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
+            if(a.type === 'SECURITY' || a.action === 'LOCKDOWN') color = 'text-red-400 bg-red-400/10 border-red-400/30';
+            if(a.type === 'USER') color = 'text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30';
+            if(a.type === 'CONTENT') color = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
+
+            lHtml += `
+              <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 transition-colors">
+                <td class="p-4 pl-6 text-slate-400 w-44 font-semibold">${new Date(a.timestamp).toLocaleString()}</td>
+                <td class="p-4 w-32"><span class="px-2.5 py-1 rounded-md border ${color} font-bold text-[10px] tracking-wider uppercase">${a.type}</span></td>
+                <td class="p-4 text-white w-36 font-black tracking-wide text-[12px]">${a.action}</td>
+                <td class="p-4 text-slate-300 w-48 truncate max-w-[160px] font-bold text-[12px]">${a.identity || 'System Instance'}</td>
+                <td class="p-4 text-slate-400 text-[12px] leading-snug font-medium">${a.desc || ''}</td>
+              </tr>
+            `;
+         });
+         
+         const secListEl = document.getElementById('securityList');
+         if(secListEl) {
+           secListEl.innerHTML = lHtml || '<tr><td colspan="5" class="text-center p-10 text-slate-500 font-bold text-sm bg-slate-900/20"><i class="fa-solid fa-server text-3xl mb-3 block text-slate-700"></i> Arrays return empty for current configuration.</td></tr>';
+         }
+      },
+      nextPage: () => {
+          const totalPages = Math.max(1, Math.ceil(Security.filteredLogs.length / Security.itemsPerPage));
+          if(Security.currentPage < totalPages) { Security.currentPage++; Security.renderPage(); }
+      },
+      prevPage: () => {
+          if(Security.currentPage > 1) { Security.currentPage--; Security.renderPage(); }
+      },
+      exportCSV: () => {
+          if(Security.filteredLogs.length === 0) return App.toast('Array empty. Output aborted.', 'warning');
+          
+          let csv = "Timestamp,Type,Action,Identity,Description\n";
+          Security.filteredLogs.forEach(l => {
+              csv += `"${new Date(l.timestamp).toISOString()}","${l.type}","${l.action}","${(l.identity || '').replace(/"/g, '""')}","${(l.desc||'').replace(/"/g, '""')}"\n`;
+          });
+          
+          const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+          const node = document.createElement('a');
+          node.setAttribute("href", dataStr);
+          node.setAttribute("download", "Gospel_Prophecy_System_Audit_" + new Date().toISOString().split('T')[0] + ".csv");
+          document.body.appendChild(node);
+          node.click();
+          node.remove();
+          
+          App.toast('Compiled reports extracted successfully.', 'success');
+          Security.log('SECURITY', 'EXPORT', 'Admin', 'Initiated CSV array dump.');
+      }
+    };
+
+    // ================== ANALYTICS MODULE ==================
+    window.Analytics = {
+      render: () => {
+        const articles = Object.values(window.cachedContent || {}).filter(c => c.status === 'Published');
+        
+        let labels = []; let viewData = []; let likeData =[];
+        let totalViews = 0; let totalEngagement = 0;
+
+        if (articles.length === 0) {
+            labels = ['Awaiting Inputs']; viewData =[0]; likeData = [0];
+        } else {
+            articles.sort((a,b) => (b.views || 0) - (a.views || 0));
+            articles.forEach(a => {
+                totalViews += (a.views || 0);
+                totalEngagement += (a.likes || 0) + (a.shares || 0) + (a.comments ? Object.keys(a.comments).length : 0);
+            });
+            const top = articles.slice(0, 7);
+            labels = top.map(a => a.title ? (a.title.length > 15 ? a.title.substring(0,15)+'...' : a.title) : 'Untitled');
+            viewData = top.map(a => a.views || 0);
+            likeData = top.map(a => a.likes || 0);
+        }
+
+        const now = Date.now(); 
+        const fourteenDays = 14 * 24 * 60 * 60 * 1000;
+        const usersArr = Object.values(window.cachedUsers || {});
+        const activeUsers = usersArr.filter(u => u.lastLogin && (now - u.lastLogin) < fourteenDays).length;
+        const inactiveUsers = usersArr.length - activeUsers;
+
+        const elV = document.getElementById('stat-total-views');
+        const elE = document.getElementById('stat-total-eng');
+        const elU = document.getElementById('stat-active-users');
+        if(elV) elV.innerText = totalViews.toLocaleString();
+        if(elE) elE.innerText = totalEngagement.toLocaleString();
+        if(elU) elU.innerText = activeUsers.toLocaleString();
+
+        renderChart('analyticsChart', 'bar', {
+          labels: labels,
+          datasets:[
+            { label: 'Network Views', data: viewData, backgroundColor: '#0ea5e9', borderRadius: 6 },
+            { label: 'Organic Likes', data: likeData, backgroundColor: '#ec4899', borderRadius: 6 }
+          ]
+        }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: {font:{family: 'Inter', weight: 600}, color:'#94a3b8'} }, y: { grid: { color: 'rgba(30, 41, 59, 0.2)', drawBorder: false }, ticks: {font:{family: 'Inter', weight: 600}, color:'#94a3b8'}, beginAtZero: true } } });
+
+        renderChart('userDistChart', 'doughnut', {
+           labels: ['Active Vectors (14d)', 'Dormant Links'],
+           datasets: [{ data: [activeUsers, inactiveUsers], backgroundColor:['#10b981', '#1e293b'], borderWidth: 0, hoverOffset: 4 }]
+        }, { cutout: '78%', plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {family:'Inter', weight: 700}, padding: 20 } } } });
+      }
+    };
+
+    window.Health = {
+      render: () => {
+        const opts = { cutout: '82%', plugins: { tooltip: { enabled: false } }, rotation: -90, circumference: 180 };
+        renderChart('gaugeMem', 'doughnut', { datasets: [{ data: [62, 38], backgroundColor:['#0ea5e9', '#0f172a'], borderWidth: 0, borderRadius: 2 }] }, opts);
+        renderChart('gaugeDisk', 'doughnut', { datasets: [{ data:[28, 72], backgroundColor:['#ec4899', '#0f172a'], borderWidth: 0, borderRadius: 2 }] }, opts);
+        renderChart('gaugeNet', 'doughnut', { datasets: [{ data:[45, 55], backgroundColor:['#10b981', '#0f172a'], borderWidth: 0, borderRadius: 2 }] }, opts);
+        renderChart('gaugeDB', 'doughnut', { datasets: [{ data: [12, 88], backgroundColor:['#f59e0b', '#0f172a'], borderWidth: 0, borderRadius: 2 }] }, opts);
+      }
+    };
+
+    // ================== CONFIGURATION MODULE ==================
+    window.Config = {
+      load: async () => {
+         const cached = await IDB.get('config');
+         if(cached) {
+            requestAnimationFrame(() => Config.renderConfig(cached));
+         }
+
+         onValue(ref(db, 'config'), snap => {
+            if(snap.exists()) {
+               const c = snap.val();
+               IDB.set('config', c);
+               requestAnimationFrame(() => Config.renderConfig(c));
+            }
+         });
+      },
+      renderConfig: (c) => {
+           const elReg = document.getElementById('cfgReg');
+           const elCom = document.getElementById('cfgComm');
+           const elMaint = document.getElementById('cfgMaint');
+           const elMaintMsg = document.getElementById('cfgMaintMsg');
+           const qaMaintBtn = document.getElementById('btn-quick-maint');
+           
+           const elLockdown = document.getElementById('cfgLockdown');
+           const elAdminReg = document.getElementById('cfgAdminReg');
+
+           if(elReg) elReg.checked = c.registrationEnabled !== false;
+           if(elCom) elCom.checked = c.commentsEnabled !== false;
+           if(elMaint) elMaint.checked = c.maintenanceMode === true;
+           if(elMaintMsg) elMaintMsg.value = c.maintenanceMessage || '';
+           
+           if(elLockdown) elLockdown.checked = c.adminLockdown === true;
+           if(elAdminReg) elAdminReg.checked = c.adminRegistrationEnabled !== false;
+           
+           if(qaMaintBtn) {
+               if(c.maintenanceMode) {
+                   qaMaintBtn.innerHTML = '<i class="fa-solid fa-shield-halved mr-1.5 animate-pulse"></i> Firewall Active';
+                   qaMaintBtn.className = 'btn px-3 py-3.5 rounded-xl bg-red-600/20 text-red-400 border border-red-600/50 text-xs font-bold transition-all text-center truncate shadow-sm';
+               } else {
+                   qaMaintBtn.innerHTML = '<i class="fa-solid fa-shield-halved mr-1.5"></i> Maint: OFF';
+                   qaMaintBtn.className = 'admin-only-ui btn px-3 py-3.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-xs font-bold transition-all text-center truncate shadow-sm hidden';
+                   // Re-apply admin-only-ui visibility correctly if changed
+                   if (window.AuthEngine.currentActiveSession && ['Superadmin', 'Admin'].includes(window.AuthEngine.currentActiveSession.role)) {
+                       qaMaintBtn.classList.remove('hidden');
+                   }
+               }
+           }
+      },
+      save: async () => { 
+         const btn = document.getElementById('btnSaveConfig');
+         const ogText = btn.innerHTML;
+         
+         const reg = document.getElementById('cfgReg').checked;
+         const com = document.getElementById('cfgComm').checked;
+         const maint = document.getElementById('cfgMaint').checked;
+         const maintMsg = document.getElementById('cfgMaintMsg').value;
+         
+         let lockdownState = false;
+         let adminRegState = true;
+         if (window.AuthEngine && window.AuthEngine.currentActiveSession && window.AuthEngine.currentActiveSession.role === 'Superadmin') {
+             lockdownState = document.getElementById('cfgLockdown').checked;
+             adminRegState = document.getElementById('cfgAdminReg').checked;
+         } else if (window.globalConfig) {
+             lockdownState = window.globalConfig.adminLockdown || false;
+             adminRegState = window.globalConfig.adminRegistrationEnabled !== false;
+         }
+
+         btn.disabled = true;
+         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Implementing...';
+
+         try {
+             await update(ref(db, 'config'), { 
+                 registrationEnabled: reg, 
+                 commentsEnabled: com, 
+                 maintenanceMode: maint, 
+                 maintenanceMessage: maintMsg,
+                 adminLockdown: lockdownState,
+                 adminRegistrationEnabled: adminRegState
+             });
+             App.toast('Logic parameters synchronized dynamically.', 'success'); 
+             window.Security.log('SYSTEM', 'CONFIG_UPDATE', 'Admin', 'Overrode system core thresholds'); 
+         } catch(e) { 
+             handleDBError(e); 
+         } finally {
+             if(btn) { btn.disabled = false; btn.innerHTML = ogText; }
+         }
+      },
+      broadcast: async () => {
+          const msgEl = document.getElementById('announcementMsg');
+          const expEl = document.getElementById('announcementExpiry');
+          const msg = msgEl ? msgEl.value.trim() : '';
+          const expRaw = expEl ? expEl.value : '';
+          
+          if(!msg || !expRaw) return App.toast("Broadcast requires both text and an explicit expiration timestamp.", "error");
+          
+          const expTime = new Date(expRaw).getTime();
+          if(expTime <= Date.now()) return App.toast("Expiration logic must occur in the future.", "error");
+
+          try {
+              await update(ref(db, 'config'), { announcement: { text: msg, expiresAt: expTime } });
+              App.toast('Broadcast deployed to all global clients.', 'success');
+              window.Security.log('SYSTEM', 'BROADCAST', 'Superadmin', `Transmitted: ${msg}`);
+              if(msgEl) msgEl.value = '';
+          } catch(e) {
+              handleDBError(e);
+          }
+      },
+      toggleMaintenance: async () => {
+        try {
+            const snap = await get(ref(db, 'config'));
+            const currentConfig = snap.exists() ? snap.val() : {};
+            const newState = !currentConfig.maintenanceMode;
+            await update(ref(db, 'config'), { maintenanceMode: newState });
+            App.toast(newState ? 'Emergency Firewall Activated' : 'System Returned to Public', newState ? 'warning' : 'success');
+            window.Security.log('SYSTEM', 'MAINTENANCE', 'Admin', newState ? 'Invoked strict lock down' : 'Disengaged locks');
+        } catch(e) { handleDBError(e); }
+      }
+    };
+
+    // ================== BACKUP MODULE ==================
+    window.Backup = { 
+        export: async () => {
+            const btn = document.getElementById('btnExportDB');
+            const ogText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Compiling...';
+            App.toast('Compiling master JSON hash...', 'info');
+            
+            try {
+                const snap = await get(ref(db, '/'));
+                if(!snap.exists()) {
+                    App.toast('Structure void. Export ignored.', 'warning');
+                    btn.disabled = false; btn.innerHTML = ogText;
+                    return;
+                }
+                
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(snap.val()));
+                const node = document.createElement('a');
+                node.setAttribute("href", dataStr);
+                node.setAttribute("download", "Gospel_Prophecy_SystemState_" + new Date().toISOString().split('T')[0] + ".json");
+                document.body.appendChild(node);
+                node.click();
+                node.remove();
+                
+                window.Security.log('SYSTEM', 'BACKUP_EXPORT', 'Admin', 'Secured JSON payload generation');
+                App.toast('Snapshot delivered correctly.', 'success');
+            } catch (e) { 
+                handleDBError(e); 
+            } finally {
+                if(btn) { btn.disabled = false; btn.innerHTML = ogText; }
+            }
+        },
+        import: (event) => {
+            const file = event.target.files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if(confirm("CRITICAL INJECTION: Overwrite absolute system memory with this file vector? Action is permanent.")) {
+                        App.toast('Executing destructive restore...', 'warning');
+                        await set(ref(db, '/'), json);
+                        App.toast('Database parameters overwritten successfully. Rebooting...', 'success');
+                        window.Security.log('SYSTEM', 'BACKUP_IMPORT', 'Admin', 'Executed total memory wipe & rewrite');
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                } catch(err) {
+                    App.toast('Parsing failed. File format rejected.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
+
+    function initDashboardChart() {
+      window.About.load(); 
+      requestAnimationFrame(() => {
+          renderChart('healthGauge', 'doughnut', { datasets:[{ data:[34, 66], backgroundColor:['#10b981', '#0f172a'], borderWidth: 0, borderRadius: 3 }] }, { cutout: '82%', plugins: { tooltip: { enabled: false } }, rotation: -90, circumference: 180 });
+      });
+    }
+
+    // ==========================================
+    // INITIALIZATION PIPELINE
+    // ==========================================
+    window.initializeAppDirectly = async function() {
+      if (window.appInitializedState) return;
+      window.appInitializedState = true;
+
+      await IDB.init();
+
+      window.Scheduler.init(); 
+      window.Users.load();
+      window.Content.load();
+      window.Security.load();
+      window.Config.load();
+      window.Support.loadTickets(); 
+      window.Notifications.initListener(); 
+      
+      initDashboardChart();
+      App.toast('Secure Admin Handshake Authenticated.', 'success');
+      window.Security.log('AUTH', 'SESSION_GENERATE', window.AuthEngine.currentActiveSession.name, 'Admin Terminal Session Generated');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.AuthEngine.checkSessionIntegrity();
+    });
+
+  </script>
+</body>
+</html>
